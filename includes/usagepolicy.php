@@ -145,16 +145,16 @@ header("Content-Type: text/html; charset=".$CHARSET);
 			    <div>
 					<ul>
 						<li>
-							Mientras que la <?php echo $DEFAULT_TITLE; ?> har&aacute; todos los esfuerzos posibles para controlar y documentar la calidad de los datos que publica, los 								datos se ponen a disposici&oacute;n "tal cual". Cualquier informe de errores en los datos debe ser dirigida a los curadores apropiados y / o administradores 						de colecciones.
+							Mientras que la <b>Red de Herbarios Mexicanos</b> har&aacute; todos los esfuerzos posibles para controlar y documentar la calidad de los datos que publica, los 								datos se ponen a disposici&oacute;n "tal cual". Cualquier informe de errores en los datos debe ser dirigida a los curadores apropiados y / o administradores 						de colecciones.
 						</li>
 						<li>
-							<?php echo $DEFAULT_TITLE; ?> no puede asumir la responsabilidad por da&ntilde;os resultantes del mal uso o mala interpretaci&oacute;n de conjuntos de 								datos o de los errores u omisiones que puedan existir en los datos.
+							La <b>Red de Herbarios Mexicanos</b> no puede asumir la responsabilidad por da&ntilde;os resultantes del mal uso o mala interpretaci&oacute;n de conjuntos de 								datos o de los errores u omisiones que puedan existir en los datos.
 						</li>
 						<li>
 							Se considera una cuesti&oacute;n de &eacute;tica profesional el citar y reconocer el trabajo de otros cient&iacute;ficos que ha dado lugar a los datos 								utilizados en investigaciones posteriores. Recomendamos a los usuarios ponerse en contacto con el investigador original responsable de los datos que 						est&aacute;n accediendo.
 						</li>
 						<li>
-							<?php echo $DEFAULT_TITLE; ?> solicita que los usuarios no distribuyan los datos obtenidos de este sitio sin el permiso de los propietarios de datos.
+							La <b>Red de Herbarios Mexicanos</b> solicita que los usuarios no distribuyan los datos obtenidos de este sitio sin el permiso de los propietarios de datos.
 							Sin embargo, los enlaces o referencias a este sitio pueden ser publicados libremente.
 						</li>
 					</ul>
@@ -166,7 +166,7 @@ header("Content-Type: text/html; charset=".$CHARSET);
 			    </div>
 				<h2>Notas sobre los registros de espec&iacute;menes e im&aacute;genes</h2>
 			    <div style="margin:15px;">
-					Los ejemplares son generalmente utilizados para la investigaci&oacute;n cient&iacute;fica y debido a su preparaci&oacute;n especializada y uso cuidadoso podr&iacute;an durar 						cientos de a&ntilde;os. Algunas colecciones tienen muestras que fueron recolectadas hace m&aacute;s de 100 a&ntilde;os, que incluso ya no se producen dentro de la zona. Al 						hacer estos ejemplares disponibles en la web como im&aacute;genes, su disponibilidad y valor mejora sin un aumento en el da&ntilde;o inadvertido provocado por el uso. Tenga 				en cuenta que si est&aacute; considerando recolectar muestras, recuerde que ello requiere normalmente del permiso del propietario del terreno y, en el caso de plantas raras y 						en peligro de extinci&oacute;n, se pueden requerir permisos adicionales. Lo mejor es coordinar estos esfuerzos con una instituci&oacute;n regional que maneja una 							colecci&oacute;n accesible p&uacute;blicamente, como por ejemplo, los herbarios que conforman la <b>Red de Herbarios del Noroeste de M&eacute;xico</b>.
+					Los ejemplares son generalmente utilizados para la investigaci&oacute;n cient&iacute;fica y debido a su preparaci&oacute;n especializada y uso cuidadoso podr&iacute;an durar 						cientos de a&ntilde;os. Algunas colecciones tienen muestras que fueron recolectadas hace m&aacute;s de 100 a&ntilde;os, que incluso ya no se producen dentro de la zona. Al 						hacer estos ejemplares disponibles en la web como im&aacute;genes, su disponibilidad y valor mejora sin un aumento en el da&ntilde;o inadvertido provocado por el uso. Tenga 				en cuenta que si est&aacute; considerando recolectar muestras, recuerde que ello requiere normalmente del permiso del propietario del terreno y, en el caso de plantas raras y 						en peligro de extinci&oacute;n, se pueden requerir permisos adicionales. Lo mejor es coordinar estos esfuerzos con una instituci&oacute;n regional que maneja una 							colecci&oacute;n accesible p&uacute;blicamente, como por ejemplo, los herbarios que conforman la <b>Red de Herbarios Mexicanos</b>.
 				</div>
 				<?php
 			}
