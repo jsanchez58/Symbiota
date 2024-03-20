@@ -62,18 +62,10 @@ if($SYMB_UID){
 		table.styledtable td {
 		    white-space: nowrap;
 		}
-    </style>
-    <?php
-      $activateJQuery = false;
-      if(file_exists($SERVER_ROOT.'/includes/head.php')){
-        include_once($SERVER_ROOT.'/includes/head.php');
-      }
-      else{
-        echo '<link href="'.$CLIENT_ROOT.'/css/jquery-ui.css" type="text/css" rel="stylesheet" />';
-        echo '<link href="'.$CLIENT_ROOT.'/css/base.css?ver=1" type="text/css" rel="stylesheet" />';
-        echo '<link href="'.$CLIENT_ROOT.'/css/main.css?ver=1" type="text/css" rel="stylesheet" />';
-      }
-    ?>
+	</style>
+	<?php
+	include_once($SERVER_ROOT.'/includes/head.php');
+	?>
 </head>
 <body style="margin-left: 0px; margin-right: 0px;background-color:white;">
 	<!-- inner text -->
@@ -90,7 +82,7 @@ if($SYMB_UID){
 				$headerArr = array();
 				foreach($recArr as $occurArr){
 					foreach($occurArr as $k => $v){
-						if(trim($v) && !array_key_exists($k,$headerArr)){
+						if($v && trim($v) && !array_key_exists($k,$headerArr)){
 							$headerArr[$k] = $k;
 						}
 					}
@@ -128,13 +120,15 @@ if($SYMB_UID){
 						echo "<tr ".($cnt%2?'class="alt"':'').">\n";
 						foreach($headerArr as $k => $v){
 							$displayStr = $occArr[$k];
-							if(strlen($displayStr) > 60){
-								$displayStr = substr($displayStr,0,60).'...';
+							if($displayStr){
+								if(strlen($displayStr) > 60){
+									$displayStr = substr($displayStr,0,60).'...';
+								}
+								if($k == 'occid' && $searchVar != 'new') {
+									$displayStr = '<a href="../editor/occurrenceeditor.php?occid='.$displayStr.'" target="_blank">'.$displayStr.'</a>';
+								}
 							}
-							if($k == 'occid' && $displayStr && $searchVar != 'new') {
-								$displayStr = '<a href="../editor/occurrenceeditor.php?occid='.$displayStr.'" target="_blank">'.$displayStr.'</a>';
-							}
-							if(!$displayStr) $displayStr = '&nbsp;';
+							else $displayStr = '&nbsp;';
 							echo '<td>'.$displayStr.'</td>'."\n";
 						}
 						echo "</tr>\n";

@@ -14,28 +14,22 @@ $attrsValues = Array();
 
 $clValue = array_key_exists('cl',$_REQUEST)?$_REQUEST['cl']:'';
 if(!$clValue && array_key_exists('clid',$_REQUEST)) $clValue = $_REQUEST['clid'];
-$dynClid = array_key_exists('dynclid',$_REQUEST)?$_REQUEST['dynclid']:0;
+$dynClid = array_key_exists('dynclid', $_REQUEST) ? filter_var($_REQUEST['dynclid'], FILTER_SANITIZE_NUMBER_INT) : 0;
 $taxonValue = array_key_exists('taxon',$_REQUEST)?$_REQUEST['taxon']:'';
 $rv = array_key_exists('rv',$_REQUEST)?$_REQUEST['rv']:'';
-$pid = array_key_exists('pid',$_REQUEST)?$_REQUEST['pid']:'';
+$pid = array_key_exists('pid', $_REQUEST) ? FILTER_VAR($_REQUEST['pid'], FILTER_SANITIZE_NUMBER_INT) : '';
 $langValue = array_key_exists('lang',$_REQUEST)?$_REQUEST['lang']:'';
-$sortBy = array_key_exists('sortby',$_REQUEST)?$_REQUEST['sortby']:0;
-$displayCommon = array_key_exists('displaycommon',$_REQUEST)?$_REQUEST['displaycommon']:0;
-$displayImages = array_key_exists('displayimages',$_REQUEST)?$_REQUEST['displayimages']:0;
+$sortBy = array_key_exists('sortby', $_REQUEST) ? FILTER_VAR($_REQUEST['sortby'], FILTER_SANITIZE_NUMBER_INT) : 0;
+$displayCommon = array_key_exists('displaycommon', $_REQUEST) ? FILTER_VAR($_REQUEST['displaycommon'], FILTER_SANITIZE_NUMBER_INT) : 0;
+$displayImages = array_key_exists('displayimages', $_REQUEST) ? FILTER_VAR($_REQUEST['displayimages'], FILTER_SANITIZE_NUMBER_INT) : 0;
 $action = array_key_exists('submitbutton',$_REQUEST)?$_REQUEST['submitbutton']:'';
 if(!$action && array_key_exists('attr',$_REQUEST) && is_array($_REQUEST['attr'])){
 	$attrsValues = $_REQUEST['attr'];	//Array of: cid + '-' + cs (ie: 2-3)
 }
 
-//Sanitation
-if(!is_numeric($dynClid)) $dynClid = 0;
-$taxonValue = filter_var($taxonValue,FILTER_SANITIZE_STRING);
+//Variable check
 if(!is_numeric($rv)) $rv = '';
-if(!is_numeric($pid)) $pid = 0;
 $langValue = 'English';
-if(!is_numeric($sortBy)) $sortBy = 0;
-if(!is_numeric($displayCommon)) $displayCommon = 0;
-if(!is_numeric($displayImages)) $displayImages = 0;
 
 $dataManager = new KeyDataManager();
 
@@ -64,16 +58,9 @@ if($chars){
 <html>
 <head>
 	<title><?php echo $DEFAULT_TITLE.$LANG['WEBKEY'].preg_replace('/\<[^\>]+\>/','',$dataManager->getClName()); ?></title>
+	<link href="<?php echo $CSS_BASE_PATH; ?>/jquery-ui.css" type="text/css" rel="stylesheet">
 	<?php
-	$activateJQuery = true;
-	if(file_exists($SERVER_ROOT.'/includes/head.php')){
-		include_once($SERVER_ROOT.'/includes/head.php');
-	}
-	else{
-		echo '<link href="'.$CLIENT_ROOT.'/css/jquery-ui.css" type="text/css" rel="stylesheet" />';
-		echo '<link href="'.$CLIENT_ROOT.'/css/base.css?ver=1" type="text/css" rel="stylesheet" />';
-		echo '<link href="'.$CLIENT_ROOT.'/css/main.css?ver=1" type="text/css" rel="stylesheet" />';
-	}
+	include_once($SERVER_ROOT.'/includes/head.php');
 	include_once($SERVER_ROOT.'/includes/googleanalytics.php');
 	?>
 	<link href="../css/alerts.css" type="text/css" rel="stylesheet" />
@@ -291,7 +278,7 @@ echo '</div>';
 			<?php
 			if(!$dynClid && $dataManager->getClAuthors()) echo '<div>'.$dataManager->getClAuthors().'</div>';
 			$count = $dataManager->getTaxaCount();
-			if($count > 0) echo '<div style="margin-bottom:15px;">'.$LANG['SPECCOUNT'].': '.$count.'</div>';
+			if($count) echo '<div style="margin-bottom:15px;">'.$LANG['SPECCOUNT'].': '.$count.'</div>';
 			else echo '<div>'.$LANG['NOMATCH'].'</div>';
 			$clType =$dataManager->getClType();
 			ksort($taxa);
@@ -331,9 +318,4 @@ echo '</div>';
 include($SERVER_ROOT.'/includes/footer.php');
 ?>
 </body>
-<script src="../js/alerts.js" type="text/javascript"></script>
-<script>
-	let alerts = [{'alertMsg': 'Looking for the previous version of Key? You can still access it above via the breadcrumb links located just below top menu bar.'}];
-	handleAlerts(alerts,"keyAlert",true);
-</script>
 </html>

@@ -146,9 +146,7 @@ class TaxonomyEditorManager extends Manager{
 
 	private function setRankName(){
 		if($this->rankid){
-			$sql = 'SELECT rankname, kingdomname '.
-				'FROM taxonunits '.
-				'WHERE (rankid = '.$this->rankid.') ';
+			$sql = 'SELECT rankname, kingdomname FROM taxonunits WHERE (rankid = '.$this->rankid.') ';
 			//echo $sql;
 			$rankArr = array();
 			$rs = $this->conn->query($sql);
@@ -215,6 +213,7 @@ class TaxonomyEditorManager extends Manager{
 	//Edit Functions
 	public function submitTaxonEdits($postArr){
 		$statusStr = '';
+		$sciname = trim($postArr['unitind1'].$postArr['unitname1'].' '.$postArr['unitind2'].$postArr['unitname2'].' '.trim($postArr['unitind3'].' '.$postArr['unitname3']));
 		$sql = 'UPDATE taxa SET '.
 			'unitind1 = '.($postArr['unitind1']?'"'.$this->cleanInStr($postArr['unitind1']).'"':'NULL').', '.
 			'unitname1 = "'.$this->cleanInStr($postArr['unitname1']).'",'.
@@ -229,11 +228,7 @@ class TaxonomyEditorManager extends Manager{
 			'securitystatus = '.(is_numeric($postArr['securitystatus'])?$postArr['securitystatus']:'0').', '.
 			'modifiedUid = '.$GLOBALS['SYMB_UID'].', '.
 			'modifiedTimeStamp = "'.date('Y-m-d H:i:s').'",'.
-			'sciname = "'.$this->cleanInStr(($postArr["unitind1"]?$postArr["unitind1"]." ":"").
-			$postArr["unitname1"].($postArr["unitind2"]?" ".$postArr["unitind2"]:"").
-			($postArr["unitname2"]?" ".$postArr["unitname2"]:"").
-			($postArr["unitind3"]?" ".$postArr["unitind3"]:"").
-			($postArr["unitname3"]?" ".$postArr["unitname3"]:"")).'" '.
+			'sciname = "'.$this->cleanInStr($sciname).'" '.
 			'WHERE (tid = '.$this->tid.')';
 		//echo $sql;
 		if(!$this->conn->query($sql)){
@@ -294,7 +289,7 @@ class TaxonomyEditorManager extends Manager{
 			$rs->free();
 
 			if($deleteOther){
-				$sqlDel = "DELETE FROM taxstatus WHERE (tid = ".$this->tid.") AND (taxauthid = ".$this->taxAuthId.')';
+				$sqlDel = 'DELETE FROM taxstatus WHERE (tid = '.$this->tid.') AND (taxauthid = '.$this->taxAuthId.')';
 				$this->conn->query($sqlDel);
 			}
 			$sql = 'INSERT INTO taxstatus (tid,tidaccepted,taxauthid,family,parenttid,modifiedUid) '.
@@ -392,57 +387,56 @@ class TaxonomyEditorManager extends Manager{
 
 	private function resetCharStateInheritance($tid){
 		//set inheritance for target only
-		$sqlAdd1 = "INSERT INTO kmdescr ( TID, CID, CS, Modifier, X, TXT, Seq, Notes, Inherited ) ".
-			"SELECT DISTINCT t2.TID, d1.CID, d1.CS, d1.Modifier, d1.X, d1.TXT, ".
-			"d1.Seq, d1.Notes, IFNULL(d1.Inherited,t1.SciName) AS parent ".
-			"FROM ((((taxa AS t1 INNER JOIN kmdescr d1 ON t1.TID = d1.TID) ".
-			"INNER JOIN taxstatus ts1 ON d1.TID = ts1.tid) ".
-			"INNER JOIN taxstatus ts2 ON ts1.tidaccepted = ts2.ParentTID) ".
-			"INNER JOIN taxa t2 ON ts2.tid = t2.tid) ".
-			"LEFT JOIN kmdescr d2 ON (d1.CID = d2.CID) AND (t2.TID = d2.TID) ".
-			"WHERE (ts1.taxauthid = '.$this->taxAuthId.') AND (ts2.taxauthid = '.$this->taxAuthId.') AND (ts2.tid = ts2.tidaccepted) ".
-			"AND (t2.tid = ".$tid.") And (d2.CID Is Null)";
+		$sqlAdd1 = 'INSERT INTO kmdescr ( TID, CID, CS, Modifier, X, TXT, Seq, Notes, Inherited )
+			SELECT DISTINCT t2.TID, d1.CID, d1.CS, d1.Modifier, d1.X, d1.TXT,
+			d1.Seq, d1.Notes, IFNULL(d1.Inherited,t1.SciName) AS parent
+			FROM ((((taxa AS t1 INNER JOIN kmdescr d1 ON t1.TID = d1.TID)
+			INNER JOIN taxstatus ts1 ON d1.TID = ts1.tid)
+			INNER JOIN taxstatus ts2 ON ts1.tidaccepted = ts2.ParentTID)
+			INNER JOIN taxa t2 ON ts2.tid = t2.tid)
+			LEFT JOIN kmdescr d2 ON (d1.CID = d2.CID) AND (t2.TID = d2.TID)
+			WHERE (ts1.taxauthid = '.$this->taxAuthId.') AND (ts2.taxauthid = '.$this->taxAuthId.') AND (ts2.tid = ts2.tidaccepted)
+			AND (t2.tid = '.$tid.') And (d2.CID Is Null)';
 		$this->conn->query($sqlAdd1);
 
 		//Set inheritance for all children of target
 		if($this->rankid == 140){
-			$sqlAdd2a = "INSERT INTO kmdescr ( TID, CID, CS, Modifier, X, TXT, Seq, Notes, Inherited ) ".
-				"SELECT DISTINCT t2.TID, d1.CID, d1.CS, d1.Modifier, d1.X, d1.TXT, ".
-				"d1.Seq, d1.Notes, IFNULL(d1.Inherited,t1.SciName) AS parent ".
-				"FROM ((((taxa AS t1 INNER JOIN kmdescr d1 ON t1.TID = d1.TID) ".
-				"INNER JOIN taxstatus ts1 ON d1.TID = ts1.tid) ".
-				"INNER JOIN taxstatus ts2 ON ts1.tidaccepted = ts2.ParentTID) ".
-				"INNER JOIN taxa t2 ON ts2.tid = t2.tid) ".
-				"LEFT JOIN kmdescr d2 ON (d1.CID = d2.CID) AND (t2.TID = d2.TID) ".
-				"WHERE (ts1.taxauthid = '.$this->taxAuthId.') AND (ts2.taxauthid = '.$this->taxAuthId.') AND (ts2.tid = ts2.tidaccepted) ".
-				"AND (t2.RankId = 180) AND (t1.tid = ".$tid.") AND (d2.CID Is Null)";
+			$sqlAdd2a = 'INSERT INTO kmdescr ( TID, CID, CS, Modifier, X, TXT, Seq, Notes, Inherited )
+				SELECT DISTINCT t2.TID, d1.CID, d1.CS, d1.Modifier, d1.X, d1.TXT,
+				d1.Seq, d1.Notes, IFNULL(d1.Inherited,t1.SciName) AS parent
+				FROM ((((taxa AS t1 INNER JOIN kmdescr d1 ON t1.TID = d1.TID)
+				INNER JOIN taxstatus ts1 ON d1.TID = ts1.tid)
+				INNER JOIN taxstatus ts2 ON ts1.tidaccepted = ts2.ParentTID)
+				INNER JOIN taxa t2 ON ts2.tid = t2.tid)
+				LEFT JOIN kmdescr d2 ON (d1.CID = d2.CID) AND (t2.TID = d2.TID)
+				WHERE (ts1.taxauthid = '.$this->taxAuthId.') AND (ts2.taxauthid = '.$this->taxAuthId.') AND (ts2.tid = ts2.tidaccepted)
+				AND (t2.RankId = 180) AND (t1.tid = '.$tid.') AND (d2.CID Is Null)';
 			//echo $sqlAdd2a;
 			$this->conn->query($sqlAdd2a);
-			$sqlAdd2b = "INSERT INTO kmdescr ( TID, CID, CS, Modifier, X, TXT, Seq, Notes, Inherited ) ".
-				"SELECT DISTINCT t2.TID, d1.CID, d1.CS, d1.Modifier, d1.X, d1.TXT, ".
-				"d1.Seq, d1.Notes, IFNULL(d1.Inherited,t1.SciName) AS parent ".
-				"FROM ((((taxa AS t1 INNER JOIN kmdescr d1 ON t1.TID = d1.TID) ".
-				"INNER JOIN taxstatus ts1 ON d1.TID = ts1.tid) ".
-				"INNER JOIN taxstatus ts2 ON ts1.tidaccepted = ts2.ParentTID) ".
-				"INNER JOIN taxa t2 ON ts2.tid = t2.tid) ".
-				"LEFT JOIN kmdescr d2 ON (d1.CID = d2.CID) AND (t2.TID = d2.TID) ".
-				"WHERE (ts1.taxauthid = '.$this->taxAuthId.') AND (ts2.taxauthid = '.$this->taxAuthId.') AND (ts2.family = '".
-				$this->sciName."') AND (ts2.tid = ts2.tidaccepted) ".
-				"AND (t2.RankId = 220) AND (d2.CID Is Null)";
+			$sqlAdd2b = 'INSERT INTO kmdescr ( TID, CID, CS, Modifier, X, TXT, Seq, Notes, Inherited )
+				SELECT DISTINCT t2.TID, d1.CID, d1.CS, d1.Modifier, d1.X, d1.TXT,
+				d1.Seq, d1.Notes, IFNULL(d1.Inherited,t1.SciName) AS parent
+				FROM ((((taxa AS t1 INNER JOIN kmdescr d1 ON t1.TID = d1.TID)
+				INNER JOIN taxstatus ts1 ON d1.TID = ts1.tid)
+				INNER JOIN taxstatus ts2 ON ts1.tidaccepted = ts2.ParentTID)
+				INNER JOIN taxa t2 ON ts2.tid = t2.tid)
+				LEFT JOIN kmdescr d2 ON (d1.CID = d2.CID) AND (t2.TID = d2.TID)
+				WHERE (ts1.taxauthid = '.$this->taxAuthId.') AND (ts2.taxauthid = '.$this->taxAuthId.')
+				AND (ts2.family = "'.$this->sciName.'") AND (ts2.tid = ts2.tidaccepted) AND (t2.RankId = 220) AND (d2.CID Is Null)';
 			$this->conn->query($sqlAdd2b);
 		}
 
 		if($this->rankid > 140 && $this->rankid < 220){
-			$sqlAdd3 = "INSERT INTO kmdescr ( TID, CID, CS, Modifier, X, TXT, Seq, Notes, Inherited ) ".
-				"SELECT DISTINCT t2.TID, d1.CID, d1.CS, d1.Modifier, d1.X, d1.TXT, ".
-				"d1.Seq, d1.Notes, IFNULL(d1.Inherited,t1.SciName) AS parent ".
-				"FROM ((((taxa AS t1 INNER JOIN kmdescr d1 ON t1.TID = d1.TID) ".
-				"INNER JOIN taxstatus ts1 ON d1.TID = ts1.tid) ".
-				"INNER JOIN taxstatus ts2 ON ts1.tidaccepted = ts2.ParentTID) ".
-				"INNER JOIN taxa t2 ON ts2.tid = t2.tid) ".
-				"LEFT JOIN kmdescr d2 ON (d1.CID = d2.CID) AND (t2.TID = d2.TID) ".
-				"WHERE (ts1.taxauthid = '.$this->taxAuthId.') AND (ts2.taxauthid = '.$this->taxAuthId.') AND (ts2.tid = ts2.tidaccepted) ".
-				"AND (t2.RankId = 220) AND (t1.tid = ".$tid.") AND (d2.CID Is Null)";
+			$sqlAdd3 = 'INSERT INTO kmdescr ( TID, CID, CS, Modifier, X, TXT, Seq, Notes, Inherited )
+				SELECT DISTINCT t2.TID, d1.CID, d1.CS, d1.Modifier, d1.X, d1.TXT,
+				d1.Seq, d1.Notes, IFNULL(d1.Inherited,t1.SciName) AS parent
+				FROM ((((taxa AS t1 INNER JOIN kmdescr d1 ON t1.TID = d1.TID)
+				INNER JOIN taxstatus ts1 ON d1.TID = ts1.tid)
+				INNER JOIN taxstatus ts2 ON ts1.tidaccepted = ts2.ParentTID)
+				INNER JOIN taxa t2 ON ts2.tid = t2.tid)
+				LEFT JOIN kmdescr d2 ON (d1.CID = d2.CID) AND (t2.TID = d2.TID)
+				WHERE (ts1.taxauthid = '.$this->taxAuthId.') AND (ts2.taxauthid = '.$this->taxAuthId.') AND (ts2.tid = ts2.tidaccepted)
+				AND (t2.RankId = 220) AND (t1.tid = '.$tid.') AND (d2.CID Is Null)';
 			//echo $sqlAdd2b;
 			$this->conn->query($sqlAdd3);
 		}
@@ -538,7 +532,7 @@ class TaxonomyEditorManager extends Manager{
 			'source, notes, securitystatus, modifiedUid, modifiedTimeStamp) '.
 			'VALUES ("'.$this->cleanInStr($dataArr['sciname']).'","'.
 			($dataArr['author']?$this->cleanInStr($dataArr['author']):'').'",'.
-			($dataArr['rankid']?$dataArr['rankid']:'NULL').','.
+			(isset($dataArr['rankid'])?$dataArr['rankid']:0).','.
 			($dataArr['unitind1']?'"'.$this->cleanInStr($dataArr['unitind1']).'"':'NULL').',"'.
 			$this->cleanInStr($dataArr['unitname1']).'",'.
 			($dataArr['unitind2']?'"'.$this->cleanInStr($dataArr['unitind2']).'"':'NULL').','.
@@ -549,7 +543,6 @@ class TaxonomyEditorManager extends Manager{
 			($dataArr['notes']?'"'.$this->cleanInStr($dataArr['notes']).'"':'NULL').','.
 			$this->cleanInStr($dataArr['securitystatus']).','.
 			$GLOBALS['SYMB_UID'].',"'.date('Y-m-d H:i:s').'")';
-		//echo "sqlTaxa: ".$sqlTaxa;
 		if($this->conn->query($sqlTaxa)){
 			$tid = $this->conn->insert_id;
 		 	//Load accepteance status into taxstatus table
@@ -632,13 +625,20 @@ class TaxonomyEditorManager extends Manager{
 			}
 
 			//Add their geopoints to omoccurgeoindex
-			$sql3 = 'INSERT IGNORE INTO omoccurgeoindex(tid,decimallatitude,decimallongitude) '.
-				'SELECT DISTINCT o.tidinterpreted, round(o.decimallatitude,2), round(o.decimallongitude,2) '.
-				'FROM omoccurrences o '.
-				'WHERE (o.tidinterpreted '.$tid.') AND (o.decimallatitude between -90 and 90) AND (o.decimallongitude between -180 and 180) '.
-				'AND (o.cultivationStatus IS NULL OR o.cultivationStatus = 0) AND (o.coordinateUncertaintyInMeters IS NULL OR o.coordinateUncertaintyInMeters < 10000) ';
+			$sql3 = 'INSERT IGNORE INTO omoccurgeoindex(tid,decimallatitude,decimallongitude)
+				SELECT DISTINCT o.tidinterpreted, round(o.decimallatitude,2), round(o.decimallongitude,2)
+				FROM omoccurrences o
+				WHERE (o.tidinterpreted = '.$tid.') AND (o.decimallatitude between -90 and 90) AND (o.decimallongitude between -180 and 180)
+				AND (o.cultivationStatus IS NULL OR o.cultivationStatus = 0) AND (o.coordinateUncertaintyInMeters IS NULL OR o.coordinateUncertaintyInMeters < 10000) ';
 
 			$this->conn->query($sql3);
+
+			//Populate NULL kingdomName values
+			$sql4 = 'UPDATE IGNORE taxa t INNER JOIN taxaenumtree e ON t.tid = e.tid
+				INNER JOIN taxa p ON e.parenttid = p.tid
+				SET t.kingdomname = p.sciname
+				WHERE p.rankid = 10 AND t.kingdomname = ""';
+			$this->conn->query($sql4);
 		}
 		else{
 			$this->errorMessage = (isset($this->langArr['ERROR_INSERT'])?$this->langArr['ERROR_INSERT']:'ERROR inserting new taxon').': '.$this->conn->error;
@@ -762,12 +762,6 @@ class TaxonomyEditorManager extends Manager{
 			$sql ='UPDATE IGNORE fmchklsttaxalink SET tid = '.$targetTid.' WHERE tid = '.$this->tid;
 			if(!$this->conn->query($sql)) $this->warningArr[] = (isset($this->langArr['ERROR_TRANSFER_CHECKLIST'])?$this->langArr['ERROR_TRANSFER_CHECKLIST']:'ERROR transferring checklist links').' ('.$this->conn->error.')';
 
-			$sql ='UPDATE IGNORE fmvouchers SET tid = '.$targetTid.' WHERE tid = '.$this->tid;
-			if(!$this->conn->query($sql)) $this->warningArr[] = (isset($this->langArr['ERROR_TRANSFER_VOUCHERS'])?$this->langArr['ERROR_TRANSFER_VOUCHERS']:'ERROR transferring vouchers').' ('.$this->conn->error.')';
-
-			$sql ='DELETE FROM fmvouchers WHERE tid = '.$this->tid;
-			if(!$this->conn->query($sql)) $this->warningArr[] = (isset($this->langArr['ERROR_TRANSFER_LVOUCHERS'])?$this->langArr['ERROR_TRANSFER_LVOUCHERS']:'ERROR deleting leftover vouchers').' ('.$this->conn->error.')';
-
 			$sql ='DELETE FROM fmchklsttaxalink WHERE tid = '.$this->tid;
 			if(!$this->conn->query($sql)) $this->warningArr[] = (isset($this->langArr['ERROR_TRANSFER_LCHECKLISTS'])?$this->langArr['ERROR_TRANSFER_LCHECKLISTS']:'ERROR deleting leftover checklist links').' ('.$this->conn->error.')';
 
@@ -820,10 +814,6 @@ class TaxonomyEditorManager extends Manager{
 
 		$sql ='UPDATE omoccurdeterminations SET tidinterpreted = NULL WHERE tidinterpreted = '.$this->tid;
 		if(!$this->conn->query($sql)) $this->warningArr[] = (isset($this->langArr['ERROR_TRANSFER_DETS'])?$this->langArr['ERROR_TRANSFER_DETS']:'ERROR transferring occurrence determination records').' ('.$this->conn->error.')';
-
-		//Vouchers
-		$sql ='DELETE FROM fmvouchers WHERE tid = '.$this->tid;
-		if(!$this->conn->query($sql)) $this->warningArr[] = (isset($this->langArr['ERROR_DEL_VOUCHER'])?$this->langArr['ERROR_DEL_VOUCHER']:'ERROR deleting voucher links in deleteTaxon method').' ('.$this->conn->error.')';
 
 		//Links to checklists
 		$sql ='DELETE FROM fmchklsttaxalink WHERE tid = '.$this->tid;
@@ -946,7 +936,7 @@ class TaxonomyEditorManager extends Manager{
 	}
 
 	public function getAuthor(){
-		return $this->author;
+		return $this->cleanOutStr($this->author);
 	}
 
 	public function getParentTid(){
@@ -962,11 +952,11 @@ class TaxonomyEditorManager extends Manager{
 	}
 
 	public function getSource(){
-		return $this->source;
+		return $this->source ?? '';
 	}
 
 	public function getNotes(){
-		return $this->notes;
+		return $this->cleanOutStr($this->notes);
 	}
 
 	public function getSecurityStatus(){
@@ -1003,9 +993,8 @@ class TaxonomyEditorManager extends Manager{
 
 	public function getRankArr(){
 		$retArr = array();
-		$sql = 'SELECT DISTINCT rankid, rankname FROM taxonunits '.
-			'WHERE (kingdomname = "'.($this->kingdomName?$this->kingdomName:'Organism').'") '.
-			'ORDER BY rankid, rankname DESC';
+		$sql = 'SELECT DISTINCT rankid, rankname FROM taxonunits ORDER BY rankid, rankname DESC';
+		if($this->kingdomName) $sql = 'SELECT DISTINCT rankid, rankname FROM taxonunits WHERE (kingdomname = "'.$this->kingdomName.'") ORDER BY rankid, rankname DESC';
 		$rs = $this->conn->query($sql);
 		while($row = $rs->fetch_object()){
 			$retArr[$row->rankid][] = $row->rankname;

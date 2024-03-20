@@ -86,8 +86,8 @@ if($traitID){
 <html>
 	<head>
 		<title>Occurrence Attribute batch Editor</title>
+		<link href="<?php echo $CSS_BASE_PATH; ?>/jquery-ui.css" type="text/css" rel="stylesheet">
 		<?php
-		$activateJQuery = true;
 		include_once($SERVER_ROOT.'/includes/head.php');
 		?>
 		<script src="../../js/jquery.js" type="text/javascript"></script>
@@ -482,6 +482,7 @@ if($traitID){
 								<div style="margin:20px">
 									<input name="taxonfilter" type="hidden" value="<?php echo $taxonFilter; ?>" />
 									<input name="tidfilter" type="hidden" value="<?php echo $tidFilter; ?>" />
+									<input name="localfilter" type="hidden" value="<?php echo $localFilter; ?>" />
 									<input name="traitid" type="hidden" value="<?php echo $traitID; ?>" />
 									<input name="collid" type="hidden" value="<?php echo $collid; ?>" />
 									<input id="panex2" name="panex" type="hidden" value="<?php echo $paneX; ?>" />

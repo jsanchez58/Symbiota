@@ -5,20 +5,18 @@ include_once($SERVER_ROOT.'/content/lang/collections/misc/collstats.'.$LANG_TAG.
 header("Content-Type: text/html; charset=".$CHARSET);
 ini_set('max_execution_time', 1200); //1200 seconds = 20 minutes
 
-$catID = array_key_exists("catid",$_REQUEST)?$_REQUEST["catid"]:0;
+$catID = array_key_exists('catid', $_REQUEST) ? $_REQUEST['catid'] : 0;
 if(!$catID && isset($DEFAULTCATID) && $DEFAULTCATID) $catID = $DEFAULTCATID;
-$collId = array_key_exists("collid",$_REQUEST)?$_REQUEST["collid"]:0;
-$cPartentTaxon = array_key_exists("taxon",$_REQUEST)?$_REQUEST["taxon"]:'';
-$cCountry = array_key_exists("country",$_REQUEST)?$_REQUEST["country"]:'';
-$days = array_key_exists("days",$_REQUEST)?$_REQUEST["days"]:365;
-$months = array_key_exists("months",$_REQUEST)?$_REQUEST["months"]:12;
-$action = array_key_exists('submitaction',$_REQUEST)?$_REQUEST['submitaction']:'';
+$collId = array_key_exists('collid', $_REQUEST) ? $_REQUEST['collid'] : 0;
+$cPartentTaxon = array_key_exists('taxon', $_REQUEST) ? $_REQUEST['taxon'] : '';
+$cCountry = array_key_exists('country', $_REQUEST) ? $_REQUEST['country'] : '';
+$days = array_key_exists('days', $_REQUEST) ? filter_var($_REQUEST['days'], FILTER_SANITIZE_NUMBER_INT) : 365;
+$months = array_key_exists('months', $_REQUEST)? filter_var($_REQUEST['months'], FILTER_SANITIZE_NUMBER_INT) : 12;
+$action = array_key_exists('submitaction', $_REQUEST) ? $_REQUEST['submitaction'] : '';
 
 //Variable sanitation
 if(!preg_match('/^[0-9,]+$/',$catID)) $catID = 0;
 if(!preg_match('/^[0-9,]+$/',$collId)) $collId = 0;
-if(!is_numeric($days)) $days = 0;
-if(!is_numeric($months)) $months = 0;
 
 $collManager = new OccurrenceCollectionProfile();
 
@@ -226,11 +224,11 @@ if($action != "Update Statistics"){
 		<head>
 			<meta name="keywords" content="Natural history collections statistics" />
 			<title><?php echo $DEFAULT_TITLE.(isset($LANG['COL_STATS'])?$LANG['COL_STATS']:'Collection Statistics'); ?></title>
+			<link href="<?php echo $CSS_BASE_PATH; ?>/jquery-ui.css" type="text/css" rel="stylesheet">
 			<?php
-			$activateJQuery = true;
 			include_once($SERVER_ROOT.'/includes/head.php');
 			?>
-			<link href="<?php echo $CSS_BASE_PATH; ?>/collection.css" type="text/css" rel="stylesheet" />
+			<link href="<?php echo $CSS_BASE_PATH; ?>/symbiota/collections/listdisplay.css" type="text/css" rel="stylesheet" />
             <script src="../../js/jquery.js" type="text/javascript"></script>
 			<script src="../../js/jquery-ui.js" type="text/javascript"></script>
 			<script src="../../js/symb/collections.index.js" type="text/javascript"></script>
@@ -726,7 +724,7 @@ if($action != "Update Statistics"){
 						?>
 						<div id="statsdiv">
 							<div style="min-height:300px;">
-								<div style="height:100%;">
+								<div>
 									<h1><?php echo (isset($LANG['SEL_COL_STATS'])?$LANG['SEL_COL_STATS']:'Selected Collection Statistics'); ?></h1>
 									<div style="font-weight:bold;font-size:105%;margin:10px;">
 										<div id="colllistlabel"><a href="#" onclick="toggle('colllist');toggle('colllistlabel');"><?php echo (isset($LANG['DISPLAY_LIST'])?$LANG['DISPLAY_LIST']:'Display List of Collections Analyzed'); ?></a></div>

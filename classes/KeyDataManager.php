@@ -46,6 +46,7 @@ class KeyDataManager extends Manager {
 	}
 
 	private function getCharList(){
+		//Used in first key, can probably delete once first key is deprecated
 		$returnArray = Array();
 		//Rate char list: Get list of char that are coded for a percentage of taxa list that is greater than
 		if($this->sql){
@@ -102,7 +103,7 @@ class KeyDataManager extends Manager {
 						if($row->helpurl) $charName .= ' <a class="infoAnchor" href="'.$row->helpurl.'" target="_blank" title="external resource"><img src="../images/info.png"></a>';
 						if($row->glossid) $charName .= ' <a class="infoAnchor" href="" onclick="openGlossaryPopup('.$row->glossid.');return false;" title="glossary term"><img src="../images/info.png"></a>';
 						$diffRank = false;
-						if($row->DifficultyRank && $row->DifficultyRank > 1 && !array_key_exists($charCID,$this->charArr)) $diffRank = true;
+						//if($row->DifficultyRank && $row->DifficultyRank > 1 && !array_key_exists($charCID,$this->charArr)) $diffRank = true;
 
 						//Set HeadingName within the $charArray, if not yet set
 						$headingArray[$headingID]['HeadingNames'][$language] = $row->headingname;
@@ -193,11 +194,12 @@ class KeyDataManager extends Manager {
 
 			if($charList){
 				$sqlChar = 'SELECT DISTINCT cs.CID, cs.CS, cs.CharStateName, cs.Description AS csdescr, cs.glossid AS csglossid, chars.CharName,
-					chars.description AS chardescr, chars.hid, chead.headingname, chars.glossid AS charglossid, chars.helpurl, Count(cs.CS) AS Ct, chars.DifficultyRank
+					chars.description AS chardescr, chars.hid, chead.headingname, chars.glossid AS charglossid, chars.helpurl, Count(cs.CS) AS Ct, chars.DifficultyRank, csimg.url AS csimgurl
 					FROM ('.$this->sql.') AS tList INNER JOIN kmdescr d ON tList.TID = d.TID
 					INNER JOIN kmcs cs ON (d.CS = cs.CS) AND (d.CID = cs.CID)
 					INNER JOIN kmcharacters chars ON chars.cid = cs.CID
 					LEFT JOIN kmcharheading chead ON chars.hid = chead.hid
+					LEFT JOIN kmcsimages csimg ON (cs.CS = csimg.CS) AND (cs.CID = csimg.CID)
 					GROUP BY chead.language, cs.CID, cs.CS, cs.CharStateName, chars.CharName, chead.headingname, chars.helpurl, chars.DifficultyRank, chars.chartype
 					HAVING (chead.language = "English" OR chead.language IS NULL) AND (cs.CID In ('.implode(",",$charList).')) AND (cs.CS <> "-")
 					AND (chars.chartype="UM" Or chars.chartype = "OM") AND (chars.DifficultyRank < 3)
@@ -220,7 +222,7 @@ class KeyDataManager extends Manager {
 						if($r->helpurl) $charName .= ' <a class="infoAnchor" href="'.$r->helpurl.'" target="_blank" title="external resource"><img src="../images/info.png" /></a>';
 						if($r->charglossid) $charName .= ' <a class="infoAnchor" href="" onclick="openGlossaryPopup('.$r->charglossid.');return false;" title="glossary term"><img src="../images/info.png"></a>';
 						$diffRank = false;
-						if($r->DifficultyRank && $r->DifficultyRank > 1 && !array_key_exists($charCID,$this->charArr)) $diffRank = true;
+						//if($r->DifficultyRank && $r->DifficultyRank > 1 && !array_key_exists($charCID,$this->charArr)) $diffRank = true;
 
 						//Set HeadingName within the $charArray, if not yet set
 						$language = 'English';
@@ -244,6 +246,7 @@ class KeyDataManager extends Manager {
 						$charStateName = $r->CharStateName;
 						if($r->csdescr) $charStateName = '<span class="characterStateName" title="'.$r->csdescr.'">'.$r->CharStateName.'</span>';
 						if($r->csglossid) $charStateName .= ' <a class="infoAnchor" href="" onclick="openGlossaryPopup('.$r->csglossid.');return false;" title="glossary term"><img src="../images/info.png"></a>';
+						if($r->csimgurl) $charStateName .= ' <a class="infoAnchor" href="'.$r->csimgurl.'" target="_blank" title="Character State Image"><img src="../images/image.png"></a>';
 						$headingArray[$headingID][$charCID][$cs][$language] = $charStateName;
 					}
 				}
@@ -389,21 +392,19 @@ class KeyDataManager extends Manager {
 	public function setTaxaListSQL(){
 		if(!$this->sql){
 			if($this->clid || $this->dynClid){
-				$sqlFromBase = 'FROM taxa t INNER JOIN taxstatus ts ON t.tid = ts.tid '.
-					'INNER JOIN taxa t1 ON t.UnitName1 = t1.UnitName1 AND t.UnitName2 = t1.UnitName2 '.
-					'INNER JOIN taxstatus ts1 ON ts1.tidaccepted = t1.tid ';
-				$sqlWhere = 'WHERE (ts.taxauthid = 1) AND (ts1.taxauthid = 1) AND (t.RankId = 220) AND (ts.tid = ts.tidaccepted) ';
+				$sqlFromBase = 'FROM taxa t INNER JOIN taxstatus ts ON t.tid = ts.tidaccepted ';
+				$sqlWhere = 'WHERE (ts.taxauthid = 1) AND (t.RankId BETWEEN 180 AND 220) ';
 				if($this->dynClid){
 					$sqlFromBase .= 'INNER JOIN fmdyncltaxalink clk ON ts.tid = clk.tid ';
 					$sqlWhere .= 'AND (clk.dynclid = '.$this->dynClid.') ';
 				}
 				else{
 					if($this->clType == 'dynamic'){
-						$sqlFromBase .= 'INNER JOIN omoccurrences o ON ts1.tid = o.TidInterpreted ';
+						$sqlFromBase .= 'INNER JOIN omoccurrences o ON ts.tid = o.tidinterpreted ';
 						$sqlWhere .= 'AND ('.$this->dynamicSql.') ';
 					}
 					else{
-						$sqlFromBase .= 'INNER JOIN fmchklsttaxalink clk ON ts1.tid = clk.tid ';
+						$sqlFromBase .= 'INNER JOIN fmchklsttaxalink clk ON ts.tid = clk.tid ';
 						$clidStr = $this->clid;
 						if($this->childClidArr){
 							$clidStr .= ','.implode(',',array_keys($this->childClidArr));
@@ -436,7 +437,6 @@ class KeyDataManager extends Manager {
 					}
 				}
 				$this->sql = 'SELECT DISTINCT t.tid, ts.family, t.sciname '.$sqlFromBase.$sqlWhere;
-				//echo $this->sql;
 			}
 		}
 	}
@@ -455,7 +455,7 @@ class KeyDataManager extends Manager {
 
 	public function setProject($projValue){
 		if(is_numeric($projValue)){
-			$this->pid = $projValue;
+			$this->pid = filter_var($projValue, FILTER_SANITIZE_NUMBER_INT);
 		}
 	}
 
@@ -497,7 +497,8 @@ class KeyDataManager extends Manager {
 	}
 
 	public function setClValue($clid){
-		$sql = "";
+		$clid = filter_var($clid, FILTER_SANITIZE_NUMBER_INT);
+		$sql = '';
 		if($this->dynClid){
 			$sql = 'SELECT d.name, d.details, d.type FROM fmdynamicchecklists d WHERE (dynclid = '.$this->dynClid.')';
 			$result = $this->conn->query($sql);
@@ -512,13 +513,13 @@ class KeyDataManager extends Manager {
 				$this->clid = $clid;
 				$this->setMetaData();
 				//Get children checklists
-				$sqlBase = 'SELECT ch.clidchild, cl2.name '.
-					'FROM fmchecklists cl INNER JOIN fmchklstchildren ch ON cl.clid = ch.clid '.
-					'INNER JOIN fmchecklists cl2 ON ch.clidchild = cl2.clid '.
-					'WHERE (cl2.type != "excludespp") AND cl.clid IN(';
+				$sqlBase = 'SELECT ch.clidchild, cl2.name
+					FROM fmchecklists cl INNER JOIN fmchklstchildren ch ON cl.clid = ch.clid
+					INNER JOIN fmchecklists cl2 ON ch.clidchild = cl2.clid
+					WHERE (cl2.type != "excludespp") AND (ch.clid != ch.clidchild) AND cl.clid IN(';
 				$sql = $sqlBase.$this->clid.')';
 				do{
-					$childStr = "";
+					$childStr = '';
 					$rsChild = $this->conn->query($sql);
 					while($r = $rsChild->fetch_object()){
 						$this->childClidArr[$r->clidchild] = $r->name;
@@ -588,7 +589,7 @@ class KeyDataManager extends Manager {
 
 	public function setDynClid($id){
 		if(is_numeric($id)){
-			$this->dynClid = $id;
+			$this->dynClid = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
 		}
 	}
 

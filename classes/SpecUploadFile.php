@@ -9,7 +9,6 @@ class SpecUploadFile extends SpecUploadBase{
 	function __construct() {
  		parent::__construct();
 		$this->setUploadTargetPath();
-  		ini_set('auto_detect_line_endings', true);
 	}
 
 	public function __destruct(){
@@ -91,7 +90,7 @@ class SpecUploadFile extends SpecUploadBase{
 		if($fullPath){
 			//Open and grab header fields
 			$fh = fopen($fullPath,'rb') or die("Can't open file");
-			$this->sourceArr = $this->getHeaderArr($fh);
+			$this->occurSourceArr = $this->getHeaderArr($fh);
 			fclose($fh);
 		}
 	}
@@ -116,7 +115,7 @@ class SpecUploadFile extends SpecUploadBase{
 			$this->outputMsg('<li>Beginning to load records...</li>',1);
 			while($recordArr = $this->getRecordArr($fh)){
 				$recMap = Array();
-				foreach($this->fieldMap as $symbField => $sMap){
+				foreach($this->occurFieldMap as $symbField => $sMap){
 					$indexArr = array_keys($headerArr,$sMap['field']);
 					$index = array_shift($indexArr);
 					if(array_key_exists($index,$recordArr)){
@@ -132,9 +131,6 @@ class SpecUploadFile extends SpecUploadBase{
 					//Skip loading record
 					unset($recMap);
 					continue;
-				}
-				if($this->uploadType == $this->SKELETAL && (!array_key_exists('recordenteredby', $recMap) || !$recMap['recordenteredby'])){
-					$recMap['recordenteredby'] = 'preprocessed';
 				}
 				$this->loadRecord($recMap);
 				unset($recMap);
@@ -163,13 +159,13 @@ class SpecUploadFile extends SpecUploadBase{
 					if(!$this->conn->query($sqlA)){
 						$this->outputMsg('<li>ERROR cleaning recordID GUID</li>');
 					}
-					$sqlB = 'UPDATE uploadspectemp u INNER JOIN guidoccurrences g ON u.tempfield02 = g.guid '.
-						'SET u.occid = g.occid '.
-						'WHERE (u.collid IN('.$this->collId.')) AND (u.occid IS NULL)';
+					$sqlB = 'UPDATE uploadspectemp u INNER JOIN omoccurrences o ON u.tempfield02 = o.recordID '.
+						'SET u.occid = o.occid '.
+						'WHERE (u.collid IN('.$this->collId.')) AND (o.collid IN('.$this->collId.')) AND (u.occid IS NULL)';
 					if(!$this->conn->query($sqlB)){
 						$this->outputMsg('<li>ERROR populating occid from recordID GUID (stage1): '.$this->conn->error.'</li>');
 					}
-						$sqlC = 'UPDATE uploadspectemp u INNER JOIN omoccurrences o ON u.tempfield02 = o.occurrenceid '.
+					$sqlC = 'UPDATE uploadspectemp u INNER JOIN omoccurrences o ON u.tempfield02 = o.occurrenceid '.
 						'SET u.occid = o.occid '.
 						'WHERE (u.collid IN('.$this->collId.')) AND (o.collid IN('.$this->collId.')) AND (u.occid IS NULL)';
 					if(!$this->conn->query($sqlC)){
@@ -267,7 +263,7 @@ class SpecUploadFile extends SpecUploadBase{
 	}
 
 	public function getDbpkOptions(){
-		$sFields = $this->sourceArr;
+		$sFields = $this->occurSourceArr;
 		sort($sFields);
 		return $sFields;
 	}

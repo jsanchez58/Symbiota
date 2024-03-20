@@ -96,16 +96,9 @@ if($isEditor && $submitAction){
 <html>
 	<head>
 		<title><?php echo $DEFAULT_TITLE.' '.$LANG['GEOREF_TOOLS']; ?></title>
+		<link href="<?php echo $CSS_BASE_PATH; ?>/jquery-ui.css" type="text/css" rel="stylesheet">
 		<?php
-		$activateJQuery = true;
-		if(file_exists($SERVER_ROOT.'/includes/head.php')){
-			include_once($SERVER_ROOT.'/includes/head.php');
-		}
-		else{
-			echo '<link href="'.$CLIENT_ROOT.'/css/jquery-ui.css" type="text/css" rel="stylesheet" />';
-			echo '<link href="'.$CLIENT_ROOT.'/css/base.css?ver=1" type="text/css" rel="stylesheet" />';
-			echo '<link href="'.$CLIENT_ROOT.'/css/main.css?ver=1" type="text/css" rel="stylesheet" />';
-		}
+		include_once($SERVER_ROOT.'/includes/head.php');
 		?>
 		<script src="<?php echo $CLIENT_ROOT; ?>/js/jquery.js" type="text/javascript"></script>
 		<script src="<?php echo $CLIENT_ROOT; ?>/js/jquery-ui.js" type="text/javascript"></script>
@@ -165,7 +158,7 @@ if($isEditor && $submitAction){
 									<div><input name="selectall" type="checkbox" onclick="selectAllCollections(this);" /> <?php echo $LANG['SEL_DESEL_ALL']; ?></div>
 									<?php
 									foreach($collMap as $id => $collArr){
-										if(in_array($id, $USER_RIGHTS["CollAdmin"]) || in_array($id, $USER_RIGHTS["CollEditor"])){
+										if(!empty($USER_RIGHTS['CollAdmin'][$id]) || !empty($USER_RIGHTS['CollEditor'][$id])){
 											echo '<div>';
 											echo '<input name="collid[]" type="checkbox" value="'.$id.'" '.(in_array($id,$activeCollArr)?'CHECKED':'').' /> ';
 											echo $collArr['collectionname'].' ('.$collArr['code'].')';

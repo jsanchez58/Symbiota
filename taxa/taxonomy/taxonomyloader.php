@@ -32,13 +32,13 @@ if($isEditor){
 <head>
 	<title><?php echo $DEFAULT_TITLE.' '.(isset($LANG['TAXON_LOADER'])?$LANG['TAXON_LOADER']:'Taxon Loader'); ?>: </title>
 	<meta http-equiv="Content-Type" content="text/html; charset=<?php echo $CHARSET; ?>"/>
+	<link href="<?php echo $CSS_BASE_PATH; ?>/jquery-ui.css" type="text/css" rel="stylesheet">
 	<?php
-	$activateJQuery = true;
 	include_once($SERVER_ROOT.'/includes/head.php');
 	?>
 	<script type="text/javascript" src="../../js/jquery.js"></script>
 	<script type="text/javascript" src="../../js/jquery-ui.js"></script>
-	<script src="../../js/symb/taxa.taxonomyloader.js?ver=19"></script>
+	<script src="../../js/symb/taxa.taxonomyloader.js?ver=4"></script>
 </head>
 <body>
 <?php

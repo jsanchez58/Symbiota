@@ -4,28 +4,29 @@ include_once($SERVER_ROOT.'/content/lang/taxa/index.'.$LANG_TAG.'.php');
 include_once($SERVER_ROOT.'/classes/TaxonProfile.php');
 Header('Content-Type: text/html; charset='.$CHARSET);
 
-$taxonValue = array_key_exists('taxon',$_REQUEST)?$_REQUEST['taxon']:'';
-$tid = array_key_exists('tid',$_REQUEST)?$_REQUEST['tid']:'';
-$taxAuthId = array_key_exists('taxauthid',$_REQUEST)?$_REQUEST['taxauthid']:1;
-$clid = array_key_exists('clid',$_REQUEST)?$_REQUEST['clid']:0;
-$pid = array_key_exists('pid',$_REQUEST)?$_REQUEST['pid']:'';
-$lang = array_key_exists('lang',$_REQUEST)?$_REQUEST['lang']:$DEFAULT_LANG;
-$taxaLimit = array_key_exists('taxalimit',$_REQUEST)?$_REQUEST['taxalimit']:50;
-$page = array_key_exists('page',$_REQUEST)?$_REQUEST['page']:0;
-
-//Sanitation
-$taxonValue = strip_tags($taxonValue);
-$taxonValue = preg_replace('/[^a-zA-Z0-9\-\s.†×]/', '', $taxonValue);
-$taxonValue = htmlspecialchars($taxonValue, ENT_QUOTES, 'UTF-8');
-if(!is_numeric($tid)) $tid = 0;
-if(!is_numeric($taxAuthId)) $taxAuthId = 1;
-if(!is_numeric($clid)) $clid = 0;
-if(!is_numeric($pid)) $pid = '';
-$lang = filter_var($lang,FILTER_SANITIZE_STRING);
-if(!is_numeric($taxaLimit)) $taxaLimit = 50;
-if(!is_numeric($page)) $page = 0;
+$taxonValue = array_key_exists('taxon', $_REQUEST) ? $_REQUEST['taxon'] : '';
+$tid = array_key_exists('tid', $_REQUEST) ? $_REQUEST['tid'] : '';
+$taxAuthId = array_key_exists('taxauthid', $_REQUEST) ? $_REQUEST['taxauthid'] : 1;
+$clid = array_key_exists('clid', $_REQUEST) ? $_REQUEST['clid'] : 0;
+$pid = array_key_exists('pid', $_REQUEST) ? $_REQUEST['pid'] : '';
+$lang = array_key_exists('lang', $_REQUEST) ? $_REQUEST['lang']: $DEFAULT_LANG;
+$taxaLimit = array_key_exists('taxalimit', $_REQUEST) ? $_REQUEST['taxalimit'] : 50;
+$page = array_key_exists('page', $_REQUEST) ? $_REQUEST['page'] : 0;
 
 $taxonManager = new TaxonProfile();
+
+//Sanitation
+if(!is_string($taxonValue)) $taxonValue = '';
+$taxonValue = preg_replace('/[^a-zA-Z0-9\-\s.†×]/', '', $taxonValue);
+$taxonValue = htmlspecialchars($taxonValue, ENT_QUOTES, 'UTF-8');
+$tid = $taxonManager->sanitizeInt($tid);
+$taxAuthId = $taxonManager->sanitizeInt($taxAuthId);
+$clid = $taxonManager->sanitizeInt($clid);
+$pid = $taxonManager->sanitizeInt($pid);
+$lang = htmlspecialchars($lang, HTML_SPECIAL_CHARS_FLAGS);
+$taxaLimit = $taxonManager->sanitizeInt($taxaLimit);
+$page = $taxonManager->sanitizeInt($page);
+
 if($taxAuthId) $taxonManager->setTaxAuthId($taxAuthId);
 if($tid) $taxonManager->setTid($tid);
 elseif($taxonValue){
@@ -53,15 +54,11 @@ if($SYMB_UID){
 <head>
 	<title><?php echo $DEFAULT_TITLE." - ".$taxonManager->getTaxonName(); ?></title>
 	<meta http-equiv="Content-Type" content="text/html; charset=<?php echo $CHARSET; ?>"/>
+	<link href="<?php echo $CSS_BASE_PATH; ?>/jquery-ui.css" type="text/css" rel="stylesheet">
+	<link href="<?php echo $CSS_BASE_PATH; ?>/symbiota/taxa/index.css" type="text/css" rel="stylesheet" />
+	<link href="<?php echo $CSS_BASE_PATH; ?>/symbiota/taxa/traitplot.css" type="text/css" rel="stylesheet" >
 	<?php
-	$activateJQuery = true;
 	include_once($SERVER_ROOT.'/includes/head.php');
-	$cssPath = $CLIENT_ROOT.$CSS_BASE_PATH.'/taxa/speciesprofile.css?ver=1';
-	if(!file_exists($cssPath)){
-		$cssPath = $CLIENT_ROOT.'/css/symb/taxa/speciesprofile.css?ver=2';
-	}
-	echo '<link href="'.$cssPath.'?ver='.$CSS_VERSION_LOCAL.'" type="text/css" rel="stylesheet" />';
-	echo '<link rel="stylesheet" type="text/css" href="'.$CSS_BASE_PATH.'/taxa/traitplot.css" />';
 	include_once($SERVER_ROOT.'/includes/googleanalytics.php');
 	?>
 	<script src="../js/jquery.js" type="text/javascript"></script>

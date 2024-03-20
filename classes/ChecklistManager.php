@@ -1,10 +1,9 @@
 <?php
-include_once($SERVER_ROOT.'/config/dbconnection.php');
+include_once($SERVER_ROOT.'/classes/Manager.php');
 include_once($SERVER_ROOT.'/classes/ChecklistVoucherAdmin.php');
 
-class ChecklistManager {
+class ChecklistManager extends Manager{
 
-	private $conn;
 	private $clid;
 	private $dynClid;
 	private $clName;
@@ -24,6 +23,7 @@ class ChecklistManager {
 	private $limitImagesToVouchers = false;
 	private $showVouchers = false;
 	private $showAlphaTaxa = false;
+	private $showSubgenera = false;
 	private $searchCommon = false;
 	private $searchSynonyms = true;
 	private $filterArr = array();
@@ -36,11 +36,11 @@ class ChecklistManager {
 	private $basicSql;
 
 	function __construct() {
-		$this->conn = MySQLiConnectionFactory::getCon("readonly");
+		parent::__construct();
 	}
 
 	function __destruct(){
- 		if(!($this->conn === false)) $this->conn->close();
+		parent::__destruct();
 	}
 
 	public function setClid($clid){
@@ -48,19 +48,22 @@ class ChecklistManager {
 			$this->clid = $clid;
 			$this->setMetaData();
 			//Get children checklists
-			$sqlBase = 'SELECT ch.clidchild, cl2.name '.
-				'FROM fmchecklists cl INNER JOIN fmchklstchildren ch ON cl.clid = ch.clid '.
-				'INNER JOIN fmchecklists cl2 ON ch.clidchild = cl2.clid '.
-				'WHERE (cl2.type != "excludespp") AND cl.clid IN(';
+			$sqlBase = 'SELECT ch.clidchild, cl2.name
+				FROM fmchecklists cl INNER JOIN fmchklstchildren ch ON cl.clid = ch.clid
+				INNER JOIN fmchecklists cl2 ON ch.clidchild = cl2.clid
+				WHERE (cl2.type != "excludespp") AND (ch.clid != ch.clidchild) AND cl.clid IN(';
 			$sql = $sqlBase.$this->clid.')';
+			$cnt = 0;
 			do{
-				$childStr = "";
+				$childStr = '';
 				$rsChild = $this->conn->query($sql);
 				while($r = $rsChild->fetch_object()){
 					$this->childClidArr[$r->clidchild] = $r->name;
 					$childStr .= ','.$r->clidchild;
 				}
 				$sql = $sqlBase.substr($childStr,1).')';
+				$cnt++;
+				if($cnt > 20) break;
 			}while($childStr);
 		}
 	}
@@ -274,19 +277,21 @@ class ChecklistManager {
 				if($this->childClidArr){
 					$clidStr .= ','.implode(',',array_keys($this->childClidArr));
 				}
-				$vSql = 'SELECT DISTINCT v.tid, v.occid, c.institutioncode, v.notes, o.catalognumber, o.othercatalognumbers, o.recordedby, o.recordnumber, o.eventdate, o.collid '.
-					'FROM fmvouchers v INNER JOIN omoccurrences o ON v.occid = o.occid '.
-					'INNER JOIN omcollections c ON o.collid = c.collid '.
-					'WHERE (v.clid IN ('.$clidStr.')) AND v.tid IN('.implode(',',array_keys($this->taxaList)).') '.
-					'ORDER BY o.collid';
+				$vSql = 'SELECT DISTINCT cl.tid, v.occid, c.institutioncode, v.notes, o.catalognumber, o.othercatalognumbers, o.recordedby, o.recordnumber, o.eventdate, o.collid
+					FROM fmvouchers v INNER JOIN fmchklsttaxalink cl ON v.clTaxaID = cl.clTaxaID
+					INNER JOIN omoccurrences o ON v.occid = o.occid
+					INNER JOIN omcollections c ON o.collid = c.collid
+					WHERE (cl.clid IN ('.$clidStr.')) AND cl.tid IN('.implode(',',array_keys($this->taxaList)).')
+					ORDER BY o.collid';
 				if($this->thesFilter){
-					$vSql = 'SELECT DISTINCT ts.tidaccepted AS tid, v.occid, c.institutioncode, v.notes, o.catalognumber, o.othercatalognumbers, o.recordedby, o.recordnumber, o.eventdate, o.collid '.
-						'FROM fmvouchers v INNER JOIN omoccurrences o ON v.occid = o.occid '.
-						'INNER JOIN omcollections c ON o.collid = c.collid '.
-						'INNER JOIN taxstatus ts ON v.tid = ts.tid '.
-						'WHERE (ts.taxauthid = '.$this->thesFilter.') AND (v.clid IN ('.$clidStr.')) '.
-						'AND (ts.tidaccepted IN('.implode(',',array_keys($this->taxaList)).')) '.
-						'ORDER BY o.collid';
+					$vSql = 'SELECT DISTINCT ts.tidaccepted AS tid, v.occid, c.institutioncode, v.notes, o.catalognumber, o.othercatalognumbers, o.recordedby, o.recordnumber, o.eventdate, o.collid
+						FROM fmvouchers v INNER JOIN fmchklsttaxalink cl ON v.clTaxaID = cl.clTaxaID
+						INNER JOIN omoccurrences o ON v.occid = o.occid
+						INNER JOIN omcollections c ON o.collid = c.collid
+						INNER JOIN taxstatus ts ON cl.tid = ts.tid
+						WHERE (ts.taxauthid = '.$this->thesFilter.') AND (cl.clid IN ('.$clidStr.'))
+						AND (ts.tidaccepted IN('.implode(',',array_keys($this->taxaList)).'))
+						ORDER BY o.collid';
 				}
 				//echo $vSql; exit;
 		 		$vResult = $this->conn->query($vSql);
@@ -320,6 +325,12 @@ class ChecklistManager {
 				}
 				$rs->free();
 			}
+			if($this->showSubgenera){
+				$this->setSubgenera();
+				uasort($this->taxaList, function($a, $b) {
+					return $a['sciname'] <=> $b['sciname'];
+				});
+			}
 		}
 		return $this->taxaList;
 	}
@@ -328,10 +339,16 @@ class ChecklistManager {
 		if($this->taxaList){
 			$matchedArr = array();
 			if($this->limitImagesToVouchers){
+				$clidStr = $this->clid;
+				if($this->childClidArr){
+					$clidStr .= ','.implode(',',array_keys($this->childClidArr));
+				}
 				$sql = 'SELECT i.tid, i.url, i.thumbnailurl, i.originalurl
 					FROM images i INNER JOIN omoccurrences o ON i.occid = o.occid
 					INNER JOIN fmvouchers v ON o.occid = v.occid
-					WHERE (v.clid = 2) AND (i.tid IN('.implode(',',array_keys($this->taxaList)).'))';
+					INNER JOIN fmchklsttaxalink cl ON v.clTaxaID = cl.clTaxaID
+					WHERE (cl.clid = '.$clidStr.') AND (i.tid IN('.implode(',',array_keys($this->taxaList)).'))
+					ORDER BY i.sortOccurrence, i.sortSequence';
 				$matchedArr = $this->setImageSubset($sql);
 			}
 			if($missingArr = array_diff(array_keys($this->taxaList),$matchedArr)){
@@ -344,7 +361,7 @@ class ChecklistManager {
 				$matchedArr = $this->setImageSubset($sql);
 				if($missingArr = array_diff(array_keys($this->taxaList),$matchedArr)){
 					//Get children images
-					$sql = 'SELECT i2.tid, i.url, i.thumbnailurl FROM images i INNER JOIN '.
+					$sql = 'SELECT DISTINCT i2.tid, i.url, i.thumbnailurl FROM images i INNER JOIN '.
 						'(SELECT ts1.parenttid AS tid, SUBSTR(MIN(CONCAT(LPAD(i.sortsequence,6,"0"),i.imgid)),7) AS imgid '.
 						'FROM taxstatus ts1 INNER JOIN taxstatus ts2 ON ts1.tidaccepted = ts2.tidaccepted '.
 						'INNER JOIN images i ON ts2.tid = i.tid '.
@@ -359,7 +376,6 @@ class ChecklistManager {
 	private function setImageSubset($sql){
 		$matchTidArr = array();
 		if($this->taxaList){
-			//echo $sql;
 			$rs = $this->conn->query($sql);
 			while($r = $rs->fetch_object()){
 				if(!in_array($r->tid,$matchTidArr)){
@@ -411,6 +427,20 @@ class ChecklistManager {
 		}
 	}
 
+	private function setSubgenera(){
+		$sql = 'SELECT DISTINCT l.tid, t.sciname, p.sciname as parent
+			FROM fmchklsttaxalink l INNER JOIN taxaenumtree e ON l.tid = e.tid
+			INNER JOIN taxa t ON l.tid = t.tid
+			INNER JOIN taxa p ON e.parenttid = p.tid
+			WHERE e.taxauthid = 1 AND p.rankid = 190 AND l.tid IN('.implode(',',array_keys($this->taxaList)).')';
+		if($rs = $this->conn->query($sql)){
+			while($r = $rs->fetch_object()){
+				if(!strpos($r->sciname, '(')) $this->taxaList[$r->tid]['sciname'] = $r->parent . substr($this->taxaList[$r->tid]['sciname'], strpos($this->taxaList[$r->tid]['sciname'], ' '));
+			}
+			$rs->free();
+		}
+	}
+
 	public function getVoucherCoordinates($limit=0){
 		$retArr = array();
 		if(!$this->basicSql) $this->setClSql();
@@ -443,12 +473,12 @@ class ChecklistManager {
 
 			if(!$limit || $retCnt < 50){
 				//Grab voucher points
-				$sql2 = 'SELECT DISTINCT v.tid, o.occid, o.decimallatitude, o.decimallongitude, '.
-					'CONCAT(o.recordedby," (",IFNULL(o.recordnumber,o.eventdate),")") as notes '.
-					'FROM omoccurrences o INNER JOIN fmvouchers v ON o.occid = v.occid '.
-					'INNER JOIN ('.$this->basicSql.') t ON v.tid = t.tid '.
-					'WHERE v.clid IN ('.$clidStr.') AND o.decimallatitude IS NOT NULL AND o.decimallongitude IS NOT NULL '.
-					'AND (o.localitysecurity = 0 OR o.localitysecurity IS NULL) ';
+				$sql2 = 'SELECT DISTINCT cl.tid, o.occid, o.decimallatitude, o.decimallongitude, CONCAT(o.recordedby," (",IFNULL(o.recordnumber,o.eventdate),")") as notes
+					FROM omoccurrences o INNER JOIN fmvouchers v ON o.occid = v.occid
+					INNER JOIN fmchklsttaxalink cl ON v.clTaxaID = cl.clTaxaID
+					INNER JOIN ('.$this->basicSql.') t ON cl.tid = t.tid
+					WHERE cl.clid IN ('.$clidStr.') AND o.decimallatitude IS NOT NULL AND o.decimallongitude IS NOT NULL
+					AND (o.localitysecurity = 0 OR o.localitysecurity IS NULL) ';
 				if($limit) $sql2 .= 'ORDER BY RAND() LIMIT '.$limit;
 				//echo $sql2;
 				$rs2 = $this->conn->query($sql2);
@@ -478,7 +508,7 @@ class ChecklistManager {
 					$sql .= 'INNER JOIN omoccurpoints p ON o.occid = p.occid WHERE (ST_Within(p.point,GeomFromText("'.$this->clMetadata['footprintwkt'].'"))) ';
 				}
 				else{
-					$voucherManager = new ChecklistVoucherAdmin($this->conn);
+					$voucherManager = new ChecklistVoucherAdmin();
 					$voucherManager->setClid($this->clid);
 					$voucherManager->setCollectionVariables();
 					$sql .= 'WHERE ('.$voucherManager->getSqlFrag().') ';
@@ -727,25 +757,9 @@ class ChecklistManager {
 		return $retArr;
 	}
 
-	public function getUpperTaxa($term){
-		$retArr = array();
-		$param = "{$term}%";
-		$sql = 'SELECT tid, sciname FROM taxa WHERE (rankid < 180) AND (sciname LIKE ?) ORDER BY sciname';
-		$stmt = $this->conn->prepare($sql);
-		$stmt->bind_param('s', $param);
-		$stmt->execute();
-		$stmt->bind_result($tid,$sciname);
-		while ($stmt->fetch()) {
-			$retArr[$tid]['id'] = $tid;
-			$retArr[$tid]['value'] = $sciname;
-		}
-		$stmt->close();
-		return $retArr;
-	}
-
 	//Setters and getters
 	public function setThesFilter($filt){
-		$this->thesFilter = $filt;
+		if(is_numeric($filt)) $this->thesFilter = $filt;
 	}
 
 	public function getThesFilter(){
@@ -783,6 +797,10 @@ class ChecklistManager {
 
 	public function setShowAlphaTaxa($bool){
 		if($bool) $this->showAlphaTaxa = true;
+	}
+
+	public function setShowSubgenera($bool){
+		if($bool) $this->showSubgenera = true;
 	}
 
 	public function setSearchCommon($bool){
@@ -883,17 +901,12 @@ class ChecklistManager {
 	}
 
 	//Misc functions
-	private function cleanOutStr($str){
-		$str = str_replace('"',"&quot;",$str);
-		$str = str_replace("'","&apos;",$str);
+	public function cleanOutText($str){
+		//Need to clean for MS Word ouput: strip html tags, convert all html entities and then reset as html tags
+		$str = strip_tags($str);
+		$str = html_entity_decode($str);
+		$str = htmlspecialchars($str);
 		return $str;
-	}
-
-	private function cleanInStr($str){
-		$newStr = trim($str);
-		$newStr = preg_replace('/\s\s+/', ' ',$newStr);
-		$newStr = $this->conn->real_escape_string($newStr);
-		return $newStr;
 	}
 }
 ?>

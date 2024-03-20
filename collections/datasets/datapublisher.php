@@ -6,8 +6,8 @@ if ($LANG_TAG != 'en' && file_exists($SERVER_ROOT . '/content/lang/collections/d
 else include_once($SERVER_ROOT . '/content/lang/collections/datasets/datapublisher.en.php');
 header('Content-Type: text/html; charset=' . $CHARSET);
 
-$collid = array_key_exists('collid', $_REQUEST) ? $_REQUEST['collid'] : 0;
-$emode = array_key_exists('emode', $_REQUEST) ? $_REQUEST['emode'] : 0;
+$collid = array_key_exists('collid', $_REQUEST) ? filter_var($_REQUEST['collid'], FILTER_SANITIZE_NUMBER_INT) : 0;
+$emode = array_key_exists('emode', $_REQUEST) ? filter_var($_REQUEST['emode'], FILTER_SANITIZE_NUMBER_INT) : 0;
 $action = array_key_exists('formsubmit', $_REQUEST) ? $_REQUEST['formsubmit'] : '';
 
 if (!is_numeric($collid)) $collid = 0;
@@ -31,16 +31,21 @@ $_SESSION['colldata'] = $collArr;
 
 $includeDets = 1;
 $includeImgs = 1;
+$includeAttributes = 1;
 $includeMatSample = 1;
 $redactLocalities = 1;
+
 if ($action == 'savekey' || (isset($_REQUEST['datasetKey']) && $_REQUEST['datasetKey'])) {
 	$collManager->setAggKeys($_POST);
 	$collManager->updateAggKeys();
-} elseif ($action) {
+}
+elseif ($action) {
 	if (!array_key_exists('dets', $_POST)) $includeDets = 0;
 	$dwcaManager->setIncludeDets($includeDets);
 	if (!array_key_exists('imgs', $_POST)) $includeImgs = 0;
 	$dwcaManager->setIncludeImgs($includeImgs);
+	if (!array_key_exists('attributes', $_POST)) $includeAttributes = 0;
+	$dwcaManager->setIncludeAttributes($includeAttributes);
 	if (!array_key_exists('matsample', $_POST)) $includeMatSample = 0;
 	$dwcaManager->setIncludeMaterialSample($includeMatSample);
 	if (!array_key_exists('redact', $_POST)) $redactLocalities = 0;
@@ -68,8 +73,8 @@ if ($isEditor) {
 	<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">
 	<meta http-equiv="Pragma" content="no-cache">
 	<title><?php echo $LANG['DWCA_PUBLISHER']; ?></title>
+	<link href="<?php echo $CSS_BASE_PATH; ?>/jquery-ui.css" type="text/css" rel="stylesheet">
 	<?php
-	$activateJQuery = true;
 	include_once($SERVER_ROOT . '/includes/head.php');
 	?>
 	<style type="text/css">
@@ -79,7 +84,7 @@ if ($isEditor) {
 	</style>
 	<script type="text/javascript" src="../../js/jquery.js"></script>
 	<script type="text/javascript" src="../../js/jquery-ui.js"></script>
-	<script type="text/javascript" src="../../js/symb/collections.gbifpublisher.js?ver=4"></script>
+	<script type="text/javascript" src="../../js/symb/collections.gbifpublisher.js"></script>
 	<script type="text/javascript">
 		function toggle(target) {
 			var objDiv = document.getElementById(target);
@@ -121,7 +126,7 @@ if ($isEditor) {
 		}
 
 		function validateGbifForm(f) {
-			var keyValue = f.organizationKey.value.trim();
+			let keyValue = f.organizationKey.value.trim();
 			if (keyValue == "") {
 				return true;
 			} else {
@@ -130,20 +135,21 @@ if ($isEditor) {
 					return false;
 				}
 				if ((keyValue.substring(8, 9) != "-") || keyValue.substring(13, 14) != "-" || keyValue.substring(18, 19) != "-" || keyValue.substring(23, 24) != "-") {
-					alert("<?php echo $LANG['KEY_NOT_VALID'] . ' 7a989612-d0ff-407a-8aba-0a6d06f58dca)'; ?>");
+					alert("<?php echo $LANG['KEY_NOT_VALID']; ?> " + keyValue);
 					return false;
 				}
-				$.ajax({
-						method: "GET",
-						dataType: "json",
-						url: "https://api.gbif.org/v1/organization/" + keyValue
-					})
-					.done(function(retJson) {
-						f.submit();
-					})
-					.fail(function() {
-						alert("<?php echo $LANG['KEY_INVALID_CONTACT']; ?>");
-					});
+				let action = "organizationExists";
+				let data = JSON.stringify({
+					organizationKey: keyValue
+				});
+				let response = "";
+				response = callGbifCurl(data, action);
+				if(response.includes("key")){
+					f.submit();
+				}
+				else {
+					alert("<?php echo $LANG['KEY_INVALID_CONTACT']; ?>");
+				}
 				return false;
 			}
 			return false;
@@ -416,11 +422,14 @@ if ($isEditor) {
 						<input type="checkbox" name="dets" value="1" <?php echo ($includeDets ? 'CHECKED' : ''); ?> /> <?php echo $LANG['INCLUDE_DETS']; ?><br />
 						<input type="checkbox" name="imgs" value="1" <?php echo ($includeImgs ? 'CHECKED' : ''); ?> /> <?php echo $LANG['INCLUDE_IMGS']; ?><br />
 						<?php
-						if ($collManager->materialSampleIsActive()) echo '<input type="checkbox" name="matsample" value="1" ' . ($includeMatSample ? 'CHECKED' : '') . ' /> ' . $LANG['INCLUDE_MATSAMPLE'] . '<br/>';
+						if($dwcaManager->hasAttributes($collid)) echo '<input type="checkbox" name="attributes" value="1" '.($includeAttributes ? 'CHECKED' : '').'> '.$LANG['INCLUDE_ATTRIBUTES'].'<br/>';
+						if($dwcaManager->hasMaterialSamples($collid)) echo '<input type="checkbox" name="matsample" value="1" '.($includeMatSample ? 'CHECKED' : '').'> '.$LANG['INCLUDE_MATSAMPLE'].'<br/>';
 						?>
+					</div>
+					<div style="margin-top:5px;">
 						<input type="checkbox" name="redact" value="1" <?php echo ($redactLocalities ? 'CHECKED' : ''); ?> /> <?php echo $LANG['REDACT_LOC']; ?><br />
 					</div>
-					<div style="clear:both;margin:10px;">
+					<div style="margin:10px;">
 						<input type="hidden" name="collid" value="<?php echo $collid; ?>" />
 						<?php
 						echo '<button type="submit" name="formsubmit" value="buildDwca" ' . ($blockSubmitMsg ? 'disabled' : '') . '>' . $LANG['CREATE_REFRESH'] . '</button>';
@@ -441,16 +450,34 @@ if ($isEditor) {
 			<?php
 		} else {
 			$catID = (isset($DEFAULTCATID) ? $DEFAULTCATID : 0);
-			if ($IS_ADMIN) {
-				if ($action == 'buildDwca') {
-					echo '<ul>';
-					$dwcaManager->setVerboseMode(2);
-					$dwcaManager->setLimitToGuids(true);
-					$dwcaManager->batchCreateDwca($_POST['coll']);
-					echo '</ul>';
-					echo '<ul>';
-					$collManager->batchTriggerGBIFCrawl($_POST['coll']);
-					echo '</ul>';
+			if($IS_ADMIN) {
+				if($action == 'buildDwca') {
+					if($collIdArr = $_POST['coll']){
+						echo '<div>Starting batch process (' . date('Y-m-d h:i:s A') . ')</div>';
+						echo '<div>--------------------------------------------------------</div>';
+						echo '<ul>';
+						$dwcaManager->setVerboseMode(2);
+						$dwcaManager->setLimitToGuids(true);
+						foreach($collIdArr as $id){
+							$dwcaManager->resetCollArr($id);
+							if($includeAttributes){
+								if($dwcaManager->hasAttributes($id)) $dwcaManager->setIncludeAttributes(1);
+								else $dwcaManager->setIncludeAttributes(0);
+							}
+							if($includeMatSample){
+								if($dwcaManager->hasMaterialSamples($id)) $dwcaManager->setIncludeMaterialSample(1);
+								else  $dwcaManager->setIncludeMaterialSample(0);
+							}
+							if($dwcaManager->createDwcArchive()){
+								$dwcaManager->writeRssFile();
+								$collManager->batchTriggerGBIFCrawl(array($id));
+							}
+						}
+						$dwcaManager->setIncludeAttributes($includeAttributes);
+						$dwcaManager->setIncludeMaterialSample($includeMatSample);
+						echo '</ul>';
+						echo 'Batch process finished! (' . date('Y-m-d h:i:s A') . ')';
+					}
 				}
 				?>
 				<div id="dwcaadmindiv" style="margin:10px;display:<?php echo ($emode ? 'block' : 'none'); ?>;">
@@ -471,7 +498,7 @@ if ($isEditor) {
 									if ($errMsg) $inputAttr = 'DISABLED';
 									elseif ($v['url']) $inputAttr = 'CHECKED';
 									echo '<input name="coll[]" type="checkbox" value="' . $k . '" ' . $inputAttr . ' />';
-									echo '<a href="../misc/collprofiles.php?collid=' . $k . '" target="_blank">' . $v['name'] . '</a>';
+									echo '<a href="../misc/collprofiles.php?collid=' . $k . '" target="_blank">' . $v['name'] . '</a> ';
 									if ($errMsg) echo '<span style="color:red;margin-left:15px;">' . $errMsg . '</span>';
 									elseif ($v['url']) echo '<span> - published</span>';
 									echo '<br/>';
@@ -480,12 +507,17 @@ if ($isEditor) {
 							</div>
 							<fieldset style="margin:10px;padding:15px;">
 								<legend><b><?php echo $LANG['OPTIONS']; ?></b></legend>
-								<input type="checkbox" name="dets" value="1" <?php echo ($includeDets ? 'CHECKED' : ''); ?> /> <?php echo $LANG['INCLUDE_DETS']; ?><br />
-								<input type="checkbox" name="imgs" value="1" <?php echo ($includeImgs ? 'CHECKED' : ''); ?> /> <?php echo $LANG['INCLUDE_IMGS']; ?><br />
-								<?php
-								if ($dwcaManager->materialSampleIsActive()) echo '<input type="checkbox" name="matsample" value="1" ' . ($includeMatSample ? 'CHECKED' : '') . ' /> ' . $LANG['INCLUDE_MATSAMPLE'] . '<br/>';
-								?>
-								<input type="checkbox" name="redact" value="1" <?php echo ($redactLocalities ? 'CHECKED' : ''); ?> /> <?php echo $LANG['REDACT_LOC']; ?><br />
+								<div>
+									<input type="checkbox" name="dets" value="1" <?php echo ($includeDets ? 'CHECKED' : ''); ?> /> <?php echo $LANG['INCLUDE_DETS']; ?><br />
+									<input type="checkbox" name="imgs" value="1" <?php echo ($includeImgs ? 'CHECKED' : ''); ?> /> <?php echo $LANG['INCLUDE_IMGS']; ?><br />
+									<?php
+									if($dwcaManager->hasAttributes()) echo '<input type="checkbox" name="attributes" value="1" '.($includeAttributes ? 'CHECKED' : '').'> '.$LANG['INCLUDE_ATTRIBUTES'].'<br/>';
+									if($dwcaManager->hasMaterialSamples()) echo '<input type="checkbox" name="matsample" value="1" '.($includeMatSample ? 'CHECKED' : '').'> '.$LANG['INCLUDE_MATSAMPLE'].'<br/>';
+									?>
+								</div>
+								<div style="margin-top:5px;">
+									<input type="checkbox" name="redact" value="1" <?php echo ($redactLocalities ? 'CHECKED' : ''); ?> /> <?php echo $LANG['REDACT_LOC']; ?><br />
+								</div>
 							</fieldset>
 							<div style="clear:both;margin:20px;">
 								<input type="hidden" name="collid" value="<?php echo $collid; ?>" />

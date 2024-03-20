@@ -54,19 +54,14 @@ class OccurrenceSkeletal {
 					$sql2 .= ',NULL';
 				}
 			}
-			$sql = 'INSERT INTO omoccurrences('.trim($sql1,' ,').',recordenteredby,dateentered) VALUES('.trim($sql2,' ,').',"'.$GLOBALS['USERNAME'].'","'.date('Y-m-d H:i:s').'")';
-			//echo $sql;
+			$guid = UuidFactory::getUuidV4();
+			$sql = 'INSERT INTO omoccurrences('.trim($sql1,' ,').',recordEnteredBy,dateEntered,recordID) VALUES('.trim($sql2,' ,').',"'.$GLOBALS['USERNAME'].'","'.date('Y-m-d H:i:s').'","'.$guid.'")';
 			if($this->conn->query($sql)){
 				$status = true;
 				$occid = $this->conn->insert_id;
 				$this->occidArr[] = $occid;
 				//Update collection stats
 				$this->conn->query('UPDATE omcollectionstats SET recordcnt = recordcnt + 1 WHERE collid = '.$this->collid);
-				//Create and insert Symbiota GUID (UUID)
-				$guid = UuidFactory::getUuidV4();
-				if(!$this->conn->query('INSERT INTO guidoccurrences(guid,occid) VALUES("'.$guid.'",'.$occid.')')){
-					$this->errorStr = '(WARNING: Symbiota GUID mapping failed) ';
-				}
 				if(isset($postArr['ometid']) && $postArr['ometid'] && isset($postArr['exsnumber']) && $postArr['exsnumber']){
 					$this->addExsiccate($occid, $postArr['ometid'], $postArr['exsnumber']);
 				}
@@ -178,6 +173,11 @@ class OccurrenceSkeletal {
 				$sql = 'SELECT c.countryname '.
 					'FROM lkupstateprovince s INNER JOIN lkupcountry c ON s.countryid = c.countryid '.
 					'WHERE s.statename = "'.$state.'"';
+				if(!$this->lkupTablesExist()){
+					$sql = 'SELECT c.geoTerm AS countryname
+						FROM geographicthesaurus s INNER JOIN geographicthesaurus c ON s.parentID = c.geoThesID
+						WHERE s.geoTerm = "'.$state.'"';
+				}
 				$rs = $this->conn->query($sql);
 				if($r = $rs->fetch_object()) {
 					$countryStr = $r->countryname;
@@ -186,6 +186,18 @@ class OccurrenceSkeletal {
 			}
 		}
 		return $countryStr;
+	}
+
+	private function lkupTablesExist(){
+		$bool = false;
+		// Check to see is old deprecated lookup tables exist
+		$sql = 'SHOW tables LIKE "lkupcountry"';
+		$rs = $this->conn->query($sql);
+		if($rs->num_rows){
+			$bool = true;
+		}
+		$rs->free();
+		return $bool;
 	}
 
 	private function translateStateAbbreviation($abbr){

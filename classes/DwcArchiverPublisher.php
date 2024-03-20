@@ -3,8 +3,6 @@ include_once($SERVER_ROOT.'/classes/DwcArchiverCore.php');
 
 class DwcArchiverPublisher extends DwcArchiverCore{
 
-	private $materialSampleIsActive = false;
-
 	public function __construct(){
 		parent::__construct('write');
 	}
@@ -13,10 +11,12 @@ class DwcArchiverPublisher extends DwcArchiverCore{
 		parent::__destruct();
 	}
 
-	private function resetCollArr($collTarget){
+	public function resetCollArr($id){
 		unset($this->collArr);
 		$this->collArr = array();
-		$this->setCollArr($collTarget);
+		$this->setCollArr($id);
+		$this->conditionArr['collid'] = $id;
+		$this->conditionSql = '';
 	}
 
 	public function verifyCollRecords($collId){
@@ -32,16 +32,9 @@ class DwcArchiverPublisher extends DwcArchiverCore{
 
 		//Get NULL GUID counts
 		$guidTarget = ($this->collArr?$this->collArr[$collId]['guidtarget']:'');
+		if($guidTarget == 'symbiotaUUID') $guidTarget = 'recordID';
 		if($guidTarget){
-			$sql = 'SELECT COUNT(o.occid) AS cnt FROM omoccurrences o ';
-			if($guidTarget == 'symbiotaUUID'){
-				$sql .= 'LEFT JOIN guidoccurrences g ON o.occid = g.occid WHERE g.occid IS NULL ';
-			}
-			else{
-				$sql .= 'WHERE o.'.$guidTarget.' IS NULL ';
-			}
-			$sql .= 'AND o.collid = '.$collId;
-			//echo 'SQL: '.$sql.'<br/>';
+			$sql = 'SELECT COUNT(occid) AS cnt FROM omoccurrences WHERE '.$guidTarget.' IS NULL AND collid = '.$collId;
 			$rs = $this->conn->query($sql);
 			while($r = $rs->fetch_object()){
 				$recArr['nullGUIDs'] = $r->cnt;
@@ -58,14 +51,28 @@ class DwcArchiverPublisher extends DwcArchiverCore{
 		$this->logOrEcho("\n-----------------------------------------------------\n\n");
 
 		$successArr = array();
+		$includeAttributes = $this->includeAttributes;
+		$includeMatSample = $this->includeMaterialSample;
 		foreach($collIdArr as $id){
 			//Create a separate DWCA object for each collection
+			if($includeAttributes){
+				if($this->hasAttributes($id)) $this->includeAttributes = true;
+				else $this->includeAttributes = false;
+			}
+			if($includeMatSample){
+				if($this->hasMaterialSamples($id)) $this->includeMaterialSample = true;
+				else $this->includeMaterialSample = false;
+			}
 			$this->resetCollArr($id);
+			$this->conditionArr['collid'] = $id;
+			$this->conditionSql = '';
 			if($this->createDwcArchive()){
 				$successArr[] = $id;
 				$status = true;
 			}
 		}
+		$this->includeAttributes = $includeAttributes;
+		$this->includeMaterialSample = $includeMatSample;
 		//Reset $this->collArr with all the collections ran successfully and then rebuild the RSS feed
 		$this->resetCollArr(implode(',',$successArr));
 		$this->writeRssFile();
@@ -75,7 +82,7 @@ class DwcArchiverPublisher extends DwcArchiverCore{
 
 	public function writeRssFile(){
 
-		$this->logOrEcho("Mapping data to RSS feed... \n");
+		$this->logOrEcho('Mapping data to RSS feed... ');
 
 		//Create new document and write out to target
 		$newDoc = new DOMDocument('1.0',$this->charSetOut);
@@ -186,7 +193,7 @@ class DwcArchiverPublisher extends DwcArchiverCore{
 			//Get other existing DWCAs by reading and parsing current rss.xml
 			$oldDoc = new DOMDocument();
 			$oldDoc->load($sourcePath);
-			$items = $oldDoc->getElementsByTagName("item");
+			$items = $oldDoc->getElementsByTagName('item');
 			foreach($items as $i){
 				//Filter out item for active collection
 				$t = $i->getElementsByTagName("title")->item(0)->nodeValue;
@@ -201,13 +208,14 @@ class DwcArchiverPublisher extends DwcArchiverCore{
 		}
 		$newDoc->save($targetPath);
 
-		if($sourcePath != $targetPath){
+		if($sourcePath == $deprecatedPath || !file_exists($deprecatedPath)){
 			$redirectDoc = new DOMDocument();
-			$redirectDoc->loadXML('<redirect><newLocation>'.$targetPath.'</newLocation></redirect>');
+			$redirectDoc->loadXML('<redirect><newLocation>'.$this->getDomain().$GLOBALS['CLIENT_ROOT'].'/content/dwca/rss.xml</newLocation></redirect>');
 			$redirectDoc->save($deprecatedPath);
 		}
 
-		$this->logOrEcho("Done!\n");
+		$this->logOrEcho('Done!', 1);
+		$this->logOrEcho('-----------------------------------------------------');
 	}
 
 	//Misc data retrival functions
@@ -245,6 +253,7 @@ class DwcArchiverPublisher extends DwcArchiverCore{
 
 	public function getCollectionList($catID){
 		$retArr = array();
+		$serverName = $this->getDomain();
 		$sql = 'SELECT c.collid, c.collectionname, CONCAT_WS("-",c.institutioncode,c.collectioncode) as instcode, c.guidtarget, c.dwcaurl, c.managementtype, c.dynamicProperties '.
 			'FROM omcollections c INNER JOIN omcollectionstats s ON c.collid = s.collid '.
 			'LEFT JOIN omcollcatlink l ON c.collid = l.collid '.
@@ -255,11 +264,11 @@ class DwcArchiverPublisher extends DwcArchiverCore{
 		while($r = $rs->fetch_object()){
 			$retArr[$r->collid]['name'] = $r->collectionname.' ('.$r->instcode.')';
 			$retArr[$r->collid]['guid'] = $r->guidtarget;
-			$retArr[$r->collid]['url'] = substr($r->dwcaurl,0,strpos($r->dwcaurl,'/content')).'/collections/datasets/datapublisher.php';
-			$serverName = $this->getDomain();
+			$url = $r->dwcaurl;
+			if($url) $url = substr($url,0,strpos($url,'/content')).'/collections/datasets/datapublisher.php';
+			$retArr[$r->collid]['url'] = $url;
 			if(!$r->guidtarget) $retArr[$r->collid]['err'] = 'MISSING_GUID';
 			elseif($r->dwcaurl && !strpos($serverName, 'localhost') && strpos($r->dwcaurl, str_replace('www.', '', $serverName)) === false) $retArr[$r->collid]['err'] = 'ALREADY_PUB_DOMAIN';
-			if($r->dynamicProperties && strpos($r->dynamicProperties,'matSample":{"status":1')) $this->materialSampleIsActive = true;
 		}
 		$rs->free();
 		return $retArr;
@@ -289,10 +298,6 @@ class DwcArchiverPublisher extends DwcArchiverCore{
 			$rs->free();
 		}
 		return $retArr;
-	}
-
-	public function materialSampleIsActive(){
-		return $this->materialSampleIsActive;
 	}
 
 	//Mics functions

@@ -3,9 +3,9 @@ include_once('../../config/symbini.php');
 include_once($SERVER_ROOT.'/classes/OccurrenceMapManager.php');
 header("Content-Type: text/html; charset=".$CHARSET);
 
-$clid = array_key_exists('clid',$_REQUEST)?$_REQUEST['clid']:0;
-$gridSize = array_key_exists('gridSizeSetting',$_REQUEST)?$_REQUEST['gridSizeSetting']:10;
-$minClusterSize = array_key_exists('minClusterSetting',$_REQUEST)?$_REQUEST['minClusterSetting']:50;
+$clid = array_key_exists('clid', $_REQUEST) ? filter_var($_REQUEST['clid'], FILTER_SANITIZE_NUMBER_INT) : 0;
+$gridSize = array_key_exists('gridSizeSetting', $_REQUEST) ? filter_var($_REQUEST['gridSizeSetting'], FILTER_SANITIZE_NUMBER_INT) : 10;
+$minClusterSize = array_key_exists('minClusterSetting', $_REQUEST) ? filter_var($_REQUEST['minClusterSetting'], FILTER_SANITIZE_NUMBER_INT) : 50;
 
 $occurManager = new OccurrenceMapManager();
 $coordArr = $occurManager->getMappingData(0);
@@ -37,7 +37,7 @@ if(array_key_exists('taxa', $taxaArr)){
 <head>
 	<title><?php echo $DEFAULT_TITLE; ?> - Google Map</title>
 	<?php
-	$activateJQuery = false;
+
 	include_once($SERVER_ROOT.'/includes/head.php');
 	?>
 	<script src="//www.google.com/jsapi"></script>
