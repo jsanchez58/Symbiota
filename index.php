@@ -5,16 +5,19 @@ header("Content-Type: text/html; charset=".$CHARSET);
 ?>
 <html>
 <head>
-	<title><?php echo $DEFAULT_TITLE; ?> Home</title>
+	<title><?= $DEFAULT_TITLE; ?> Home</title>
 	<?php
-	$activateJQuery = true;
 	include_once($SERVER_ROOT.'/includes/head.php');
 	include_once($SERVER_ROOT.'/includes/googleanalytics.php');
 	?>
-	<link href="css/quicksearch.css" type="text/css" rel="Stylesheet" />
+	<link href="<?= $CSS_BASE_PATH; ?>/jquery-ui.css" type="text/css" rel="stylesheet">
+	<link href="<?= $CSS_BASE_PATH; ?>/quicksearch.css?ver=1" type="text/css" rel="Stylesheet" />
 	<script src="js/jquery-3.2.1.min.js" type="text/javascript"></script>
 	<script src="js/jquery-ui-1.12.1/jquery-ui.min.js" type="text/javascript"></script>
 	<script src="js/jquery.slides.js"></script>
+	<script type="text/javascript">
+		var clientRoot = "<?= $CLIENT_ROOT; ?>";
+	</script>
 	<script src="js/symb/api.taxonomy.taxasuggest.js" type="text/javascript"></script>
 	<style>
 		#slideshowcontainer{
@@ -83,7 +86,7 @@ header("Content-Type: text/html; charset=".$CHARSET);
 					species inventories, field images, taxonomic information, species distribution data, and more.
 				</p>
 				<p>
-					The Red de Herbarios Mexicanos is a collaboration of Mexican herbaria with a unified goal of providing data management
+					The <b>Red de Herbarios Mexicanos</b> is a collaboration of Mexican herbaria with a unified goal of providing data management
 					resource to the research community as well as a publicly accessible biodiversity information center containing:
 					<ul>
 						<li>registration of specimen and field observation</li>
@@ -117,7 +120,7 @@ header("Content-Type: text/html; charset=".$CHARSET);
 					inventarios de especies, fotografías de campo, información taxonómica, datos de distribución de especies y más.
 				</p>
 				<p>
-					La Red de Herbarios Mexicanos, pretende establecer un puente de colaboración entre los herbarios de México,
+					La <b>Red de Herbarios Mexicanos</b>, pretende establecer un puente de colaboración entre los herbarios de México,
 					otorgando herramientas para la gestión de colecciones y dar acceso a diferentes fuentes de información como:
 					<ul>
 						<li>registro de especímenes y observaciones de campo</li>
@@ -129,7 +132,7 @@ header("Content-Type: text/html; charset=".$CHARSET);
 					</ul>
 				</p>
 				<p>
-					En el margen derecho aparece el campo Búsqueda de Taxón, donde se pueden consultar fichas de plantas por medio de alguna categoría taxonómica como familia,
+					En el margen derecho aparece el campo <b>Búsqueda de Taxón</b>, donde se pueden consultar fichas de plantas por medio de alguna categoría taxonómica como familia,
 					género o nombre científico. Para efectuar búsquedas mas precisas utilice la opción "Colecciones" en la sección "Herramientas de Búsqueda" del menú principal.
 				</p>
 				<p>
