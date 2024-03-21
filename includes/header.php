@@ -19,7 +19,7 @@ else include_once($SERVER_ROOT.'/content/lang/header.'.$LANG_TAG.'.php');
 						Red de Herbarios Mexicanos
 					</div>
 					<div style="padding-top:20px; font-size:30px; font-style: italic">
-						Un puente de colaboración para los herbarios de México
+						Un puente de colaboración entre los botánicos de México
 					</div>
 				</div>
 			</div>
