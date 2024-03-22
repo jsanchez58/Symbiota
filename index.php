@@ -133,7 +133,7 @@ header("Content-Type: text/html; charset=".$CHARSET);
 				</p>
 				<p>
 					En el margen derecho aparece el campo <b>Búsqueda de Taxón</b>, donde se pueden consultar fichas de plantas por medio de alguna categoría taxonómica como familia,
-					género o nombre científico. Para efectuar búsquedas mas precisas utilice la opción "Colecciones" en la sección "Herramientas de Búsqueda" del menú principal.
+					género o nombre científico. Para efectuar búsquedas mas precisas utilice la opción "Colecciones" en la sección "Búsqueda" del menú principal.
 				</p>
 				<p>
 					Puede obtener indicaciones sobre como citar los datos obtenidos en este sitio web, a través de la página
