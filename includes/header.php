@@ -11,7 +11,7 @@ else include_once($SERVER_ROOT.'/content/lang/header.'.$LANG_TAG.'.php');
 	<tr>
 		<td id="header" colspan="3" style="color:#FFFFFF;">
 			<div style="float:right">
-				<img src="<?php echo $CLIENT_ROOT; ?>/images/layout/header_med.jpg" style="width:100%" />
+				<img src="<?php echo $CLIENT_ROOT; ?>/images/layout/header_med2_reducido.jpeg" style="width:100%" />
 			</div>
 			<div style="height:170px; border-bottom:1px solid #000000;">
 				<div style="margin-left: 40px; color: #fff; font-family: 'Mate', serif; letter-spacing: 1px; text-shadow: 0 0 7px rgba(0,0,0,0.5);">
