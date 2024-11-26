@@ -1,19 +1,21 @@
 <?php
 include_once('config/symbini.php');
-include_once('content/lang/index.'.$LANG_TAG.'.php');
-header("Content-Type: text/html; charset=".$CHARSET);
+if($LANG_TAG == 'en' || !file_exists($SERVER_ROOT.'/content/lang/templates/index.' . $LANG_TAG . '.php')) include_once($SERVER_ROOT . '/content/lang/templates/index.en.php');
+else include_once($SERVER_ROOT.'/content/lang/templates/index.' . $LANG_TAG . '.php');
+header('Content-Type: text/html; charset=' . $CHARSET);
 ?>
-<html>
+<!DOCTYPE html>
+<html lang="<?php echo $LANG_TAG ?>">
 <head>
-	<title><?= $DEFAULT_TITLE; ?> Home</title>
+	<title><?= $DEFAULT_TITLE . ' ' . $LANG['H_HOME'] ?></title>
 	<?php
 	include_once($SERVER_ROOT.'/includes/head.php');
 	include_once($SERVER_ROOT.'/includes/googleanalytics.php');
 	?>
 	<link href="<?= $CSS_BASE_PATH; ?>/jquery-ui.css" type="text/css" rel="stylesheet">
 	<link href="<?= $CSS_BASE_PATH; ?>/quicksearch.css?ver=1" type="text/css" rel="Stylesheet" />
-	<script src="js/jquery-3.2.1.min.js" type="text/javascript"></script>
-	<script src="js/jquery-ui-1.12.1/jquery-ui.min.js" type="text/javascript"></script>
+	<script src="js/jquery-3.7.1.min.js" type="text/javascript"></script>
+	<script src="js/jquery-ui.min.js" type="text/javascript"></script>
 	<script src="js/jquery.slides.js"></script>
 	<script type="text/javascript">
 		var clientRoot = "<?= $CLIENT_ROOT; ?>";
@@ -34,7 +36,8 @@ header("Content-Type: text/html; charset=".$CHARSET);
 	include($SERVER_ROOT.'/includes/header.php');
 	?>
 	<!-- This is inner text! -->
-	<div id="innertext">
+	<div class="navpath"></div>
+	<main id="innertext">
 		<div style="float:right;width:400px;margin-left:20px">
 			<div id="quicksearchdiv">
 				<!-- -------------------------QUICK SEARCH SETTINGS--------------------------------------- -->
@@ -78,7 +81,7 @@ header("Content-Type: text/html; charset=".$CHARSET);
 		if($LANG_TAG=='en'){
 			?>
 			<h1>Welcome to the Red de Herbarios Mexicanos</h1>
-			<div style="padding: 0px 10px;font-size:130%">
+			<div>
 				<p>
 					This data portal is meant to serve as a collaborative resource that integrates
 					biodiversity content from various sources. The portal can be used to manage live data directly within the portal or map to datasets
@@ -112,7 +115,7 @@ header("Content-Type: text/html; charset=".$CHARSET);
 		else{
 			?>
 			<h1>Bienvenidos a la Red de Herbarios Mexicanos</h1>
-			<div style="padding: 0px 10px;font-size:130%">
+			<div>
 				<p>
 					Este portal de datos está destinado a servir como un recurso colaborativo que integra contenido de biodiversidad de diversas fuentes.
 					El portal se puede utilizar para administrar datos en vivo directamente dentro del portal, o mapear conjuntos de datos administrados en
@@ -146,7 +149,7 @@ header("Content-Type: text/html; charset=".$CHARSET);
 			<?php
 		}
 		?>
-	</div>
+	</main>
 	<?php
 	include($SERVER_ROOT.'/includes/footer.php');
 	?>
