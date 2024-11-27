@@ -36,7 +36,7 @@ $collectionSearchPage = $SHOULD_USE_HARVESTPARAMS ? '/collections/index.php' : '
 			</nav>
 			<div class="top-brand">
 				<a href="<?= $CLIENT_ROOT ?>">
-					<div class="image-container">
+					<div class="image-container" style="height:126px">
 						<img src="<?= $CLIENT_ROOT ?>/images/layout/header_med2_reducido.jpeg" alt="RHM Logo">
 					</div>
 				</a>
