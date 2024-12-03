@@ -12,5 +12,7 @@
 $LANG['H_FLORAS'] = 'Flora Projects';
 $LANG['H_MABA_PROJECT'] = 'MABA Project';
 $LANG['H_IMAGE_CONTRIBUTORS'] = 'Image Contributors';
+$LANG['H_MEXICO_HERBARIUM_NETWORK'] = 'Mexican Herbaria Network';
+$LANG['H_BRIDGE_COLLABORATION'] = 'A bridge of collaboration between botanists in Mexico';
 
 ?>

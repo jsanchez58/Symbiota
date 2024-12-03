@@ -13,5 +13,8 @@ $LANG['H_HOME'] = 'Inicio';
 $LANG['H_FLORAS'] = 'Proyectos de Flora';
 $LANG['H_MABA_PROJECT'] = 'Proyecto MABA';
 $LANG['H_IMAGE_CONTRIBUTORS'] = 'Contribuyentes de Imágenes';
+$LANG['H_MEXICO_HERBARIUM_NETWORK'] = 'Red de Herbarios Mexicanos';
+$LANG['H_BRIDGE_COLLABORATION'] = 'Un puente de colaboración entre los botánicos de México';
+
 
 ?>

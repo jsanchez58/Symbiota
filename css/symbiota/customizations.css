@@ -33,3 +33,10 @@ This stylesheet is defined last and will override all previously loaded sheets. 
     margin-left: 1rem;
     color: black;
   }
+
+.brand-name h1,
+.brand-name h2 {
+  color: black;
+  margin: 0;
+  letter-spacing: 0.05em;
+}

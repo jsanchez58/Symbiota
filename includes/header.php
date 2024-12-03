@@ -40,6 +40,11 @@ $collectionSearchPage = $SHOULD_USE_HARVESTPARAMS ? '/collections/index.php' : '
 						<img src="<?= $CLIENT_ROOT ?>/images/layout/header_med2_reducido.jpeg" alt="RHM Logo">
 					</div>
 				</a>
+				</a>
+				<div class="brand-name">
+					<h1><?= $LANG['H_MEXICO_HERBARIUM_NETWORK'] ?></h1>
+					<h2><?= $LANG['H_BRIDGE_COLLABORATION'] ?></h2>
+				</div>
 			</div>
 		</div>
 		<div class="menu-wrapper">
