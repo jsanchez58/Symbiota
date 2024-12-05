@@ -105,6 +105,11 @@ header('Content-Type: text/html; charset=' . $CHARSET);
 					Use the "Collections" option within the "Search Tools" section of the main menu to query specimen and observation records.
 				</p>
 				<p>
+					This site is brought to you in collaboration with the <a href="http://symbiota.org/seinet/" target="_blank">SEINet Network</a>. 
+					When you search this portal, or any of the other SEINet portal partners, you are getting results from our one central database. 
+					The SEINet portal network contains 24 million records from over 450 collections.
+				</p>
+				<p>
 					If you have questions, comments, or recommendations, please share your feedback with the
 					<a class="bodylink" href="mailto:help@symbiota.org?subject=Mexico Portal Feedback">Support Hub HelpDesk (help@symbiota.org)</a>.
 					Visit the <a href="misc/usagepolicy.php">Data Usage Policy</a> page for information on how to cite data obtained from this web resource.
@@ -141,6 +146,11 @@ header('Content-Type: text/html; charset=' . $CHARSET);
 				<p>
 					Puede obtener indicaciones sobre como citar los datos obtenidos en este sitio web, a través de la página
 					<a href="includes/usagepolicy.php">Directrices para el uso de los datos</a>.
+				</p>
+				<p>
+					Este sitio se ofrece en colaboración con la <a href="http://symbiota.org/seinet/" target="_blank">Red de Portales SEINet</a>.
+					Cuando realiza una búsqueda en este portal o en cualquiera de los otros socios del portal SEINet, obtiene resultados de nuestra base de datos central.
+					La Red de Portales SEINet contiene 24 millones de registros de más de 450 colecciones.
 				</p>
 				<p>
 					<a href="/portal/profile/newprofile.php?"><b>Regístrese</b></a> como un usuario regular y envíe sus comentarios y opiniones a <a href="mailto:jsanchez@guayacan.uson.mx">jsanchez@guayacan.uson.mx</a>.

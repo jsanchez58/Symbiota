@@ -19,7 +19,7 @@ $LANG['H_BRIDGE_COLLABORATION'] = 'Un puente de colaboración entre los botánic
 $LANG['F_KU_BI'] = 'Visitar el sitio web de KU BI';
 $LANG['F_KU_BI_LOGO'] = 'Logotipo de KU BI';
 $LANG['F_THIS_PORTAL'] = 'Este portal';
-$LANG['F_IS_PART_OF_SEINET'] = 'es parte de la red de portales SEINet';
+$LANG['F_IS_PART_OF_SEINET'] = 'es parte de la Red de Portales SEINet';
 $LANG['F_LEARN_MORE_HERE'] = 'Obtenga más información aquí';
 
 ?>
