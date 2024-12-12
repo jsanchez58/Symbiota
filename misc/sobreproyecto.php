@@ -1,18 +1,16 @@
 <?php
 include_once('../config/symbini.php');
 header("Content-Type: text/html; charset=".$CHARSET);
+include_once('content/lang/misc/aboutproject.' . $LANG_TAG . '.php');
 ?>
-<html>
+<!DOCTYPE html>
+<html lang="<?php echo $LANG_TAG ?>">
 	<head>
-		<title><?php echo ($LANG_TAG=='en'?'About the Project':'Sobre el proyecto'); ?></title>
+		<title>About Project</title>
 		<?php
-		$activateJQuery = false;
+
 		include_once($SERVER_ROOT.'/includes/head.php');
 		?>
-		<style type="text/css">
-			.title-div{ font-weight: bold; font-size: 120%; }
-			.title2-div{ font-weight: bold; }
-		</style>
 	</head>
 	<body>
 		<?php
@@ -20,15 +18,15 @@ header("Content-Type: text/html; charset=".$CHARSET);
 		include($SERVER_ROOT.'/includes/header.php');
 		?>
 		<div class="navpath">
-			<a href="../index.php"><?php echo ($LANG_TAG=='en'?'Home':'Inicio'); ?></a> &gt;&gt;
-			<b><?php echo ($LANG_TAG=='en'?'About the Project':'Sobre el proyecto'); ?></b>
+			<a href="../index.php"><?= $LANG['HOME']; ?></a> &gt;&gt;
+			<b><?= $LANG['ABOUT_PROJECT'] ?></b>
 		</div>
 		<!-- This is inner text! -->
-		<div id="innertext" style="margin:10px 20px">
+		<main id="innertext">
 			<?php
 			if($LANG_TAG=='en'){
 				?>
-				<div class="title-div">About the Project:</div>
+				<h1>About the Project</h1>
 				<p>
 					The <b>Network of Mexican Herbariums</b>, previously known as the Network of Herbariums of Northwest Mexico
 					(<a href="http://herbario.uson.mx/wp-content/uploads/2022/01/Sanchez-Gilbert_RHNM-AridoCiencia_2018_Vol_3-2_Pag_21-35.pdf" target="_blank">Sánchez and Gilbert, 2018</a>),
@@ -40,7 +38,7 @@ header("Content-Type: text/html; charset=".$CHARSET);
 				<p>
 					The <b>Red de Herbarios Mexicanos</b> is being built in collaboration with the following Mexican Herbaria:
 				</p>
-				<div class="title2-div">Noroeste:</div>
+				<h2>Noroeste:</h2>
 				<ul>
 					<li>Universidad Autónoma de Baja California (BCMEX)</li>
 					<li>Centro de Investigaciones Biológicas del Noroeste (HCIB)</li>
@@ -49,7 +47,7 @@ header("Content-Type: text/html; charset=".$CHARSET);
 					<li>Herbario Regional CIAD-Mazatlán (HCIAD)</li>
 					<li>Jardín Botánico Culiacán (HJBC)</li>
 				</ul>
-				<div class="title2-div">Norte-Centro-Sur:</div>
+				<h2>Norte-Centro-Sur:</h2>
 				<ul>
 					<li>Centro Interdisciplinario de Investigación para el Desarrollo Integral Regional Unidad Durango (CIIDIR)</li>
 					<li>Universidad Autónoma de San Luis Potosí (SLPM)</li>
@@ -76,7 +74,7 @@ header("Content-Type: text/html; charset=".$CHARSET);
 			}
 			else{
 				?>
-				<div class="title-div">Sobre el proyecto:</div>
+				<h1>Sobre el proyecto</h1>
 				<p>
 					Este portal, conocido anteriormente como Red de Herbarios del Noroeste de México
 					(<a href="http://herbario.uson.mx/wp-content/uploads/2022/01/Sanchez-Gilbert_RHNM-AridoCiencia_2018_Vol_3-2_Pag_21-35.pdf" target="_blank">Sánchez y Gilbert, 2018</a>),
@@ -91,7 +89,7 @@ header("Content-Type: text/html; charset=".$CHARSET);
 				<p>
 					En el presente, la <b>Red de Herbarios Mexicanos</b> cuenta con la participación y colaboración de los herbarios de las siguientes regiones e instituciones de México:
 				</p>
-				<div class="title2-div">Noroeste:</div>
+				<h2>Noroeste:</h2>
 				<ul>
 					<li>Universidad Autónoma de Baja California (BCMEX)</li>
 					<li>Centro de Investigaciones Biológicas del Noroeste (HCIB)</li>
@@ -100,7 +98,7 @@ header("Content-Type: text/html; charset=".$CHARSET);
 					<li>Herbario Regional CIAD-Mazatlán (HCIAD)</li>
 					<li>Jardín Botánico Culiacán (HJBC)</li>
 				</ul>
-				<div class="title2-div">Norte-Centro-Sur:</div>
+				<h2>Norte-Centro-Sur:</h2>
 				<ul>
 					<li>Centro Interdisciplinario de Investigación para el Desarrollo Integral Regional Unidad Durango (CIIDIR)</li>
 					<li>Universidad Autónoma de San Luis Potosí (SLPM)</li>
@@ -163,7 +161,7 @@ header("Content-Type: text/html; charset=".$CHARSET);
 					</a>
 				</p>
 			</div>
-		</div>
+		</main>
 		<?php
 		include($SERVER_ROOT.'/includes/footer.php');
 		?>
