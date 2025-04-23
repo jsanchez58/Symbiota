@@ -2,4 +2,45 @@
 Place your CSS customizations here.
 This stylesheet is defined last and will override all previously loaded sheets. You may reference variables defined in variables.css 
  */
- 
+ .top-wrapper {
+    background-color: var(--header-bg-color);
+    display: grid;
+    grid-template-areas: "brand login";
+    grid-template-columns: 3fr 1fr;
+    align-items: center;
+    min-width: 0;
+    width: 100%;
+    padding: 0rem 0;
+  }
+
+  .button-secondary > a {
+    color: white;
+  }
+
+  .button-tertiary {
+    background-color: none;
+    border: 3px solid var(--bright-color);
+    padding: 0.5rem 0.9rem;
+  }
+
+  .button-tertiary > a {
+    color: black;
+  }
+
+  .welcome-text {
+    display: flex;
+    align-items: center;
+    margin-left: 1rem;
+    color: black;
+  }
+
+.brand-name h1,
+.brand-name h2 {
+  color: black;
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+#innertext li {
+  line-height: 1.5em;
+}
