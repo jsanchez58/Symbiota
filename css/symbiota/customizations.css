@@ -44,3 +44,7 @@ This stylesheet is defined last and will override all previously loaded sheets. 
 #innertext li {
   line-height: 1.5em;
 }
+
+.button-secondary {
+  color: white;
+}
