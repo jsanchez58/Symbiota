@@ -127,7 +127,7 @@ $collectionSearchPage = $SHOULD_USE_HARVESTPARAMS ? '/collections/index.php' : '
 								<a href="<?= $CLIENT_ROOT; ?>/misc/sobreproyecto.php" ><?= $LANG['H_ABOUT_PROJECT']; ?></a>
 							</li>
 							<li>
-								<a href="https://biokic.github.io/symbiota-docs/" target="_blank" ><?= $LANG['H_HELP']; ?></a>
+								<a href="https://docs.symbiota.org/docs/about/" target="_blank" ><?= $LANG['H_HELP']; ?></a>
 							</li>
 							<li>
 								<a href='<?= $CLIENT_ROOT; ?>/sitemap.php'><?= $LANG['H_SITEMAP']; ?></a>
