@@ -46,5 +46,5 @@ This stylesheet is defined last and will override all previously loaded sheets. 
 }
 
 .button-secondary {
-  color: white;
+  color: black;
 }
