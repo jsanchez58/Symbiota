@@ -6,6 +6,8 @@ Language: English
 */
 $LANG['HOME'] = 'Home';
 
+$LANG['H_HOME'] = 'Home';
+
 //Taxon Quick Search plugin variables
 $LANG['QSEARCH_SEARCH'] = 'Taxon Search';
 $LANG['QSEARCH_SEARCH_BUTTON'] = 'Search';
